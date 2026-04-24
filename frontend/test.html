@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TrustCore API Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial; background: #0a0a0a; color: white; padding: 20px; }
+        .card { background: #1a1a2e; padding: 20px; margin: 10px 0; border-radius: 10px; }
+        .stat { font-size: 2em; font-weight: bold; color: #6366f1; }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+        .chart-container { width: 400px; height: 200px; margin: 20px 0; }
+        #activity-feed { max-height: 300px; overflow-y: auto; }
+        .event { padding: 10px; margin: 5px 0; background: #2a2a3e; border-radius: 8px; animation: slideIn 0.3s; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } }
+    </style>
+</head>
+<body>
+    <h1>🛡️ TrustCore API - Live Test</h1>
+    
+    <div class="card">
+        <h2>📊 Stats</h2>
+        <div id="stats">
+            <span class="stat" id="stat-users">--</span> Users | 
+            <span class="stat" id="stat-avg">--</span> Avg Score | 
+            <span class="stat" id="stat-anomalies">--</span> Anomalies
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>📈 Trust Score Chart</h2>
+        <div class="chart-container"><canvas id="mainChart"></canvas></div>
+    </div>
+    
+    <div class="card">
+        <h2>🔴 Neural Event Stream <small>(Live - updates every 2s)</small></h2>
+        <div id="activity-feed"></div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:8000';
+        let mainChart;
+
+        async function fetchStats() {
+            try {
+                const res = await fetch(API + '/api/stats');
+                const d = await res.json();
+                document.getElementById('stat-users').innerText = d.totalUsers;
+                document.getElementById('stat-avg').innerText = d.avgScore ? d.avgScore.toFixed(1) : '--';
+                document.getElementById('stat-anomalies').innerText = d.anomalies;
+                
+                if(mainChart) {
+                    mainChart.data.datasets[0].data.push(d.avgScore || 50);
+                    mainChart.data.datasets[0].data.shift();
+                    mainChart.update('none');
+                }
+            } catch(e) {
+                console.error('Stats error:', e);
+                document.getElementById('stat-users').innerText = 'ERROR';
+            }
+        }
+
+        function generateLiveEvent() {
+            const users = ['user_' + Math.random().toString(36).substr(2, 6), 'visitor_' + Math.floor(Math.random() * 1000)];
+            const browsers = ['Chrome', 'Firefox', 'Safari', 'Edge'];
+            const fakeLog = {
+                userId: users[Math.floor(Math.random() * users.length)],
+                browser: browsers[Math.floor(Math.random() * browsers.length)],
+                interval: Math.floor(Math.random() * 900 + 50),
+                variance: Math.floor(Math.random() * 80 + 5),
+                scroll: Math.floor(Math.random() * 3000 + 50),
+                tabSwitches: Math.floor(Math.random() * 20)
+            };
+            addEventToStream(fakeLog);
+        }
+
+        function addEventToStream(l) {
+            let score = 100;
+            if(l.interval < 100) score -= 40;
+            if(l.variance < 5) score -= 25;
+            if(l.scroll > 1000) score -= 20;
+            if(l.tabSwitches > 10) score -= 15;
+            score = Math.max(0, Math.min(100, score));
+            
+            const status = score > 70 ? 'success' : score > 40 ? 'warning' : 'error';
+            const statusText = score > 70 ? 'CLEAN' : score > 40 ? 'SUSPECT' : 'RISK';
+            
+            const feed = document.getElementById('activity-feed');
+            const div = document.createElement('div');
+            div.className = 'event';
+            div.innerHTML = `<b>${l.userId}</b> (${l.browser}) | INT: ${l.interval}ms | Score: <span class="${status}">${score}</span> (${statusText}) | ${new Date().toLocaleTimeString()}`;
+            feed.insertBefore(div, feed.firstChild);
+            while(feed.children.length > 10) feed.removeChild(feed.lastChild);
+        }
+
+        // Init
+        mainChart = new Chart(document.getElementById('mainChart'), {
+            type: 'line',
+            data: { labels: Array(20).fill(''), datasets: [{ data: Array(20).fill(50), borderColor: '#6366f1', borderWidth: 2, fill: true, backgroundColor: 'rgba(99,102,241,0.1)' }] },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        fetchStats();
+        
+        // Live events
+        generateLiveEvent();
+        generateLiveEvent();
+        generateLiveEvent();
+        
+        setInterval(fetchStats, 5000);
+        setInterval(generateLiveEvent, 2000);
+        
+        console.log('TrustCore Test Page Loaded!');
+        console.log('API:', API);
+    </script>
+</body>
+</html>

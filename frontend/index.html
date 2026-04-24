@@ -1,0 +1,3501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrustCore AI | Command Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #f5f1e8;
+            --bg-alt: #e8f6ef;
+            --bg-warm: #fdebd8;
+            --panel: rgba(255, 255, 255, 0.78);
+            --panel-strong: rgba(255, 255, 255, 0.96);
+            --panel-dark: #10233d;
+            --ink: #10233d;
+            --muted: #62748a;
+            --line: rgba(16, 35, 61, 0.09);
+            --shadow: 0 24px 80px rgba(16, 35, 61, 0.12);
+            --brand: #0f766e;
+            --brand-strong: #115e59;
+            --brand-soft: rgba(15, 118, 110, 0.12);
+            --accent: #ea580c;
+            --accent-soft: rgba(234, 88, 12, 0.14);
+            --safe: #059669;
+            --safe-soft: rgba(5, 150, 105, 0.12);
+            --warning: #c0841a;
+            --warning-soft: rgba(202, 138, 4, 0.14);
+            --danger: #dc2626;
+            --danger-soft: rgba(220, 38, 38, 0.12);
+            --radius-lg: 28px;
+            --radius-md: 20px;
+            --radius-sm: 14px;
+            --sidebar-width: 292px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Manrope', sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 10% 10%, rgba(15, 118, 110, 0.18), transparent 24%),
+                radial-gradient(circle at 85% 14%, rgba(234, 88, 12, 0.16), transparent 26%),
+                linear-gradient(135deg, #f8f4eb 0%, #edf7f2 48%, #fff6e8 100%);
+            overflow-x: hidden;
+        }
+
+        .ambient {
+            position: fixed;
+            border-radius: 999px;
+            filter: blur(16px);
+            opacity: 0.55;
+            z-index: 0;
+            animation: floatOrb 14s ease-in-out infinite;
+        }
+
+        .ambient.one {
+            width: 280px;
+            height: 280px;
+            top: 5%;
+            right: -80px;
+            background: rgba(15, 118, 110, 0.18);
+        }
+
+        .ambient.two {
+            width: 340px;
+            height: 340px;
+            left: -100px;
+            bottom: 8%;
+            background: rgba(234, 88, 12, 0.16);
+            animation-delay: -4s;
+        }
+
+        .ambient.three {
+            width: 220px;
+            height: 220px;
+            left: 32%;
+            top: 50%;
+            background: rgba(16, 35, 61, 0.08);
+            animation-delay: -9s;
+        }
+
+        .app-shell {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            padding: 28px 22px;
+            background:
+                radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 38%),
+                linear-gradient(180deg, #0f223a 0%, #132a45 48%, #10233d 100%);
+            color: #eff6ff;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 40px rgba(16, 35, 61, 0.24);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding-bottom: 22px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .brand-mark {
+            width: 52px;
+            height: 52px;
+            border-radius: 18px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #14b8a6, #f97316);
+            color: white;
+            box-shadow: 0 16px 32px rgba(20, 184, 166, 0.28);
+        }
+
+        .brand-copy h1,
+        .topbar-copy h1,
+        .hero-copy h2,
+        .section-heading h3,
+        .modal-head h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.03em;
+        }
+
+        .brand-copy h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .brand-copy p {
+            font-size: 0.82rem;
+            color: rgba(239, 246, 255, 0.72);
+            margin-top: 3px;
+        }
+
+        .nav {
+            margin-top: 24px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .nav-item {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            color: rgba(239, 246, 255, 0.74);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 13px 14px;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease;
+            text-align: left;
+        }
+
+        .nav-item span {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .nav-item .nav-indicator {
+            opacity: 0;
+            transform: translateX(-4px);
+            transition: inherit;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            transform: translateX(4px);
+        }
+
+        .nav-item.active .nav-indicator {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .sidebar-foot {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .status-card {
+            padding: 18px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--brand);
+        }
+
+        .sidebar .eyebrow {
+            color: rgba(148, 197, 255, 0.78);
+        }
+
+        .status-card strong {
+            display: block;
+            font-size: 1rem;
+            margin: 10px 0 6px;
+        }
+
+        .status-card p {
+            font-size: 0.88rem;
+            line-height: 1.6;
+            color: rgba(239, 246, 255, 0.7);
+        }
+
+        .sidebar-overlay {
+            display: none;
+        }
+
+        .workspace {
+            padding: 26px 30px 34px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .menu-toggle {
+            display: none;
+            border: 0;
+            width: 46px;
+            height: 46px;
+            border-radius: 16px;
+            background: var(--panel);
+            color: var(--ink);
+            box-shadow: var(--shadow);
+            cursor: pointer;
+        }
+
+        .topbar-copy h1 {
+            font-size: 2rem;
+            margin: 8px 0 6px;
+        }
+
+        .topbar-copy p {
+            color: var(--muted);
+            font-size: 0.98rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .panel,
+        .hero-card,
+        .signal-card,
+        .metric-card {
+            position: relative;
+            overflow: hidden;
+            background: var(--panel);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            animation: riseUp 0.75s ease both;
+        }
+
+        .panel::before,
+        .hero-card::before,
+        .signal-card::before,
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.28), transparent 42%);
+            pointer-events: none;
+        }
+
+        .panel:hover,
+        .hero-card:hover,
+        .signal-card:hover,
+        .metric-card:hover {
+            transform: translateY(-4px);
+            transition: transform 0.25s ease;
+        }
+
+        .page {
+            display: none;
+            gap: 20px;
+        }
+
+        .page.active {
+            display: grid;
+        }
+
+        .hero-grid,
+        .dashboard-grid,
+        .split-grid,
+        .analytics-grid,
+        .form-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .hero-grid {
+            grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.9fr);
+        }
+
+        .dashboard-grid {
+            grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.92fr);
+        }
+
+        .analytics-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .split-grid {
+            grid-template-columns: minmax(0, 1.38fr) minmax(320px, 0.92fr);
+        }
+
+        .hero-card {
+            padding: 28px;
+            background:
+                radial-gradient(circle at top right, rgba(15, 118, 110, 0.22), transparent 30%),
+                radial-gradient(circle at left bottom, rgba(234, 88, 12, 0.18), transparent 32%),
+                linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,255,255,0.74));
+        }
+
+        .hero-copy h2 {
+            margin-top: 14px;
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            line-height: 1.05;
+            max-width: 12ch;
+        }
+
+        .hero-copy p {
+            margin-top: 18px;
+            color: var(--muted);
+            line-height: 1.75;
+            max-width: 58ch;
+            font-size: 1rem;
+        }
+
+        .hero-actions,
+        .action-row,
+        .toolbar-actions,
+        .inline-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .hero-actions {
+            margin-top: 24px;
+        }
+
+        .hero-badges {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .badge-card {
+            padding: 16px 18px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(16, 35, 61, 0.08);
+        }
+
+        .badge-card small,
+        .meta-label,
+        .metric-card p,
+        .detail-item p,
+        .alert-summary-card p,
+        .template-card p,
+        .compact-note,
+        .table-subtext,
+        .empty-state p {
+            color: var(--muted);
+        }
+
+        .badge-card strong {
+            display: block;
+            margin-top: 8px;
+            font-size: 1.45rem;
+        }
+
+        .signal-card {
+            padding: 24px;
+            background:
+                linear-gradient(180deg, rgba(16,35,61,0.98), rgba(16,35,61,0.92)),
+                linear-gradient(135deg, rgba(15,118,110,0.6), rgba(234,88,12,0.4));
+            color: #eff6ff;
+        }
+
+        .signal-card .eyebrow {
+            color: rgba(148, 197, 255, 0.86);
+        }
+
+        .signal-card .section-heading h3,
+        .signal-card .section-heading p,
+        .signal-card .signal-meta {
+            color: inherit;
+        }
+
+        .score-ring {
+            --score: 50;
+            position: relative;
+            width: min(240px, 100%);
+            aspect-ratio: 1;
+            margin: 22px auto;
+            border-radius: 50%;
+            padding: 18px;
+            display: grid;
+            place-items: center;
+            background: conic-gradient(var(--accent) 0%, var(--brand) calc(var(--score) * 1%), rgba(255,255,255,0.12) 0);
+            box-shadow: inset 0 0 24px rgba(255,255,255,0.08);
+        }
+
+        .score-ring::after {
+            content: '';
+            position: absolute;
+            inset: 18px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, rgba(16,35,61,0.98), rgba(16,35,61,0.9));
+        }
+
+        .score-inner {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .score-inner strong {
+            font-size: 3rem;
+            display: block;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .score-inner span {
+            color: rgba(239, 246, 255, 0.78);
+        }
+
+        .signal-meta {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .signal-pill {
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .mission-feed {
+            margin-top: 22px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .mission-feed-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+        }
+
+        .mission-feed-item strong {
+            display: block;
+            font-size: 0.95rem;
+        }
+
+        .mission-feed-item span {
+            font-size: 0.82rem;
+            color: rgba(239, 246, 255, 0.72);
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .metric-card {
+            padding: 20px;
+        }
+
+        .metric-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .metric-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+        }
+
+        .metric-icon.brand { background: var(--brand-soft); color: var(--brand); }
+        .metric-icon.warning { background: var(--warning-soft); color: var(--warning); }
+        .metric-icon.danger { background: var(--danger-soft); color: var(--danger); }
+        .metric-icon.accent { background: var(--accent-soft); color: var(--accent); }
+        .metric-icon.safe { background: var(--safe-soft); color: var(--safe); }
+
+        .metric-chip {
+            font-size: 0.74rem;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-weight: 700;
+            background: rgba(16, 35, 61, 0.06);
+            color: var(--muted);
+        }
+
+        .metric-card h3 {
+            font-size: 2rem;
+            line-height: 1;
+            font-family: 'Space Grotesk', sans-serif;
+            margin-bottom: 10px;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .section-heading h3 {
+            font-size: 1.35rem;
+        }
+
+        .section-heading p {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-top: 5px;
+        }
+
+        .panel {
+            padding: 22px;
+        }
+
+        .panel.slim {
+            padding: 18px;
+        }
+
+        .live-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.78);
+            border: 1px solid var(--line);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .live-pill.dark {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.12);
+            color: #eff6ff;
+        }
+
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: var(--safe);
+            box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.45);
+            animation: pulse 1.6s infinite;
+        }
+
+        .live-pill.warning .live-dot {
+            background: var(--warning);
+            box-shadow: 0 0 0 0 rgba(202, 138, 4, 0.42);
+        }
+
+        .live-pill.danger .live-dot {
+            background: var(--danger);
+            box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+        }
+
+        .chart-box {
+            height: 320px;
+        }
+
+        .chart-box.compact {
+            height: 260px;
+        }
+
+        .data-list,
+        .event-list,
+        .alert-list,
+        .rule-grid,
+        .browser-list,
+        .timeline {
+            display: grid;
+            gap: 12px;
+        }
+
+        .event-item,
+        .alert-item,
+        .rule-tile,
+        .browser-item,
+        .timeline-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 14px;
+            align-items: center;
+            padding: 16px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(16, 35, 61, 0.08);
+        }
+
+        .event-item .material-icons-round,
+        .alert-item .material-icons-round,
+        .browser-item .material-icons-round {
+            width: 44px;
+            height: 44px;
+            border-radius: 15px;
+            display: grid;
+            place-items: center;
+            background: var(--brand-soft);
+            color: var(--brand);
+        }
+
+        .event-copy strong,
+        .alert-copy strong,
+        .rule-main strong,
+        .browser-copy strong,
+        .focus-card strong,
+        .template-card strong {
+            display: block;
+            font-size: 1rem;
+        }
+
+        .event-copy p,
+        .alert-copy p,
+        .rule-main p,
+        .browser-copy p,
+        .focus-card p {
+            font-size: 0.88rem;
+            line-height: 1.55;
+            color: var(--muted);
+        }
+
+        .event-item.danger,
+        .alert-item.danger {
+            border-color: rgba(220, 38, 38, 0.18);
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.08), rgba(255, 255, 255, 0.9));
+        }
+
+        .event-item.warning,
+        .alert-item.warning {
+            border-color: rgba(202, 138, 4, 0.18);
+            background: linear-gradient(135deg, rgba(202, 138, 4, 0.08), rgba(255, 255, 255, 0.9));
+        }
+
+        .event-item.safe {
+            border-color: rgba(5, 150, 105, 0.18);
+            background: linear-gradient(135deg, rgba(5, 150, 105, 0.08), rgba(255, 255, 255, 0.9));
+        }
+
+        .score-chip,
+        .status-chip,
+        .channel-pill,
+        .filter-chip,
+        .tiny-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 0.78rem;
+            letter-spacing: 0.01em;
+        }
+
+        .score-chip.safe,
+        .status-chip.safe,
+        .tiny-pill.safe {
+            background: var(--safe-soft);
+            color: var(--safe);
+        }
+
+        .score-chip.warning,
+        .status-chip.warning,
+        .tiny-pill.warning {
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        .score-chip.danger,
+        .status-chip.danger,
+        .tiny-pill.danger {
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        .channel-pill,
+        .filter-chip {
+            background: rgba(16, 35, 61, 0.06);
+            color: var(--ink);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: 0.22s ease;
+        }
+
+        .filter-chip.active,
+        .channel-pill:hover,
+        .filter-chip:hover {
+            background: var(--brand-soft);
+            color: var(--brand);
+            border-color: rgba(15, 118, 110, 0.2);
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-group,
+        .filter-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .input,
+        .select,
+        .textarea {
+            width: 100%;
+            border: 1px solid rgba(16, 35, 61, 0.12);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.86);
+            color: var(--ink);
+            padding: 14px 16px;
+            font: inherit;
+            outline: none;
+            transition: border-color 0.22s ease, box-shadow 0.22s ease;
+        }
+
+        .input:focus,
+        .select:focus,
+        .textarea:focus {
+            border-color: rgba(15, 118, 110, 0.4);
+            box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+        }
+
+        .textarea {
+            min-height: 112px;
+            resize: vertical;
+        }
+
+        .form-stack {
+            display: grid;
+            gap: 14px;
+        }
+
+        .form-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .check-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(16, 35, 61, 0.06);
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .check-pill input {
+            accent-color: var(--brand);
+        }
+
+        .primary-btn,
+        .secondary-btn,
+        .ghost-btn,
+        .mini-btn,
+        .icon-btn {
+            border: 0;
+            border-radius: 16px;
+            padding: 13px 16px;
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+        }
+
+        .primary-btn:hover,
+        .secondary-btn:hover,
+        .ghost-btn:hover,
+        .mini-btn:hover,
+        .icon-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, var(--brand) 0%, #14b8a6 100%);
+            color: white;
+            box-shadow: 0 16px 32px rgba(15, 118, 110, 0.24);
+        }
+
+        .secondary-btn {
+            background: rgba(16, 35, 61, 0.08);
+            color: var(--ink);
+        }
+
+        .ghost-btn {
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--ink);
+            border: 1px solid rgba(16, 35, 61, 0.08);
+        }
+
+        .mini-btn,
+        .icon-btn {
+            padding: 10px 12px;
+            border-radius: 14px;
+            font-size: 0.84rem;
+        }
+
+        .mini-btn.warning {
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        .mini-btn.safe {
+            background: var(--safe-soft);
+            color: var(--safe);
+        }
+
+        .mini-btn.danger {
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        .icon-btn {
+            background: rgba(16, 35, 61, 0.07);
+            color: var(--ink);
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: 20px;
+            border: 1px solid rgba(16, 35, 61, 0.08);
+            background: rgba(255, 255, 255, 0.58);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 16px;
+            border-bottom: 1px solid rgba(16, 35, 61, 0.08);
+            white-space: nowrap;
+        }
+
+        th {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+        }
+
+        td {
+            font-size: 0.92rem;
+            color: var(--ink);
+        }
+
+        tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .table-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            color: var(--brand);
+            background: linear-gradient(135deg, rgba(15, 118, 110, 0.14), rgba(20, 184, 166, 0.22));
+        }
+
+        .focus-card,
+        .alert-summary-card,
+        .detail-item,
+        .template-card {
+            padding: 18px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(16, 35, 61, 0.08);
+        }
+
+        .focus-card .detail-grid,
+        .detail-grid {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .detail-item strong {
+            display: block;
+            font-size: 1rem;
+            margin-top: 8px;
+        }
+
+        .alert-summary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .rule-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .rule-tile {
+            grid-template-columns: 1fr auto;
+            align-items: start;
+        }
+
+        .rule-main .channel-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .switch {
+            width: 54px;
+            height: 30px;
+            padding: 0;
+            border-radius: 999px;
+            background: rgba(16, 35, 61, 0.12);
+            position: relative;
+        }
+
+        .switch::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: white;
+            transition: 0.25s ease;
+            box-shadow: 0 8px 16px rgba(16, 35, 61, 0.16);
+        }
+
+        .switch.active {
+            background: linear-gradient(135deg, var(--brand), #14b8a6);
+        }
+
+        .switch.active::after {
+            left: 28px;
+        }
+
+        .browser-item {
+            grid-template-columns: auto 1fr auto;
+        }
+
+        .mini-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .mini-stat {
+            padding: 18px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.66);
+            border: 1px solid rgba(16, 35, 61, 0.08);
+        }
+
+        .mini-stat strong {
+            display: block;
+            font-size: 1.6rem;
+            margin-top: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .range-wrap {
+            display: grid;
+            gap: 12px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--brand);
+        }
+
+        .timeline-item {
+            grid-template-columns: auto 1fr;
+            align-items: start;
+        }
+
+        .timeline-marker {
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            margin-top: 8px;
+            background: var(--brand);
+            box-shadow: 0 0 0 6px rgba(15, 118, 110, 0.14);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 42px 20px;
+            border: 1px dashed rgba(16, 35, 61, 0.15);
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.54);
+        }
+
+        .empty-state .material-icons-round {
+            font-size: 2.7rem;
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 22px;
+            background: rgba(16, 35, 61, 0.36);
+            backdrop-filter: blur(10px);
+            z-index: 30;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-panel {
+            width: min(760px, 100%);
+            max-height: 90vh;
+            overflow: auto;
+            padding: 24px;
+            border-radius: 28px;
+            background: rgba(255,255,255,0.96);
+            box-shadow: 0 28px 80px rgba(16, 35, 61, 0.28);
+        }
+
+        .modal-head {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .toast-stack {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            display: grid;
+            gap: 12px;
+            z-index: 40;
+        }
+
+        .toast {
+            min-width: 260px;
+            padding: 14px 16px;
+            border-radius: 18px;
+            box-shadow: 0 18px 36px rgba(16, 35, 61, 0.14);
+            background: rgba(255,255,255,0.92);
+            border: 1px solid rgba(16, 35, 61, 0.08);
+            animation: toastIn 0.28s ease;
+        }
+
+        .toast.success { border-left: 4px solid var(--safe); }
+        .toast.warning { border-left: 4px solid var(--warning); }
+        .toast.danger { border-left: 4px solid var(--danger); }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.42); }
+            70% { box-shadow: 0 0 0 12px rgba(5, 150, 105, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+        }
+
+        @keyframes riseUp {
+            from {
+                opacity: 0;
+                transform: translateY(18px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes floatOrb {
+            0%, 100% { transform: translate3d(0, 0, 0); }
+            50% { transform: translate3d(0, -16px, 0); }
+        }
+
+        @keyframes toastIn {
+            from {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 1320px) {
+            .metric-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .hero-grid,
+            .dashboard-grid,
+            .split-grid,
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .rule-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 1080px) {
+            .app-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: fixed;
+                inset: 0 auto 0 0;
+                width: min(320px, 86vw);
+                transform: translateX(-104%);
+                transition: transform 0.28s ease;
+                z-index: 22;
+            }
+
+            body.sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay {
+                position: fixed;
+                inset: 0;
+                display: block;
+                opacity: 0;
+                pointer-events: none;
+                background: rgba(16, 35, 61, 0.34);
+                transition: opacity 0.25s ease;
+                z-index: 21;
+            }
+
+            body.sidebar-open .sidebar-overlay {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .workspace {
+                padding: 22px 18px 28px;
+            }
+
+            .menu-toggle {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .topbar {
+                align-items: start;
+                flex-direction: column;
+            }
+
+            .topbar-right {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .hero-card,
+            .signal-card,
+            .panel,
+            .metric-card {
+                border-radius: 22px;
+            }
+
+            .metric-grid,
+            .hero-badges,
+            .form-grid,
+            .mini-stat-grid,
+            .alert-summary,
+            .focus-card .detail-grid,
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar-copy h1 {
+                font-size: 1.6rem;
+            }
+
+            .hero-copy h2 {
+                max-width: none;
+                font-size: 2.2rem;
+            }
+
+            .toolbar {
+                align-items: stretch;
+            }
+
+            .toolbar-group,
+            .filter-row,
+            .topbar-right {
+                width: 100%;
+            }
+
+            .toolbar-group > *,
+            .filter-row > *,
+            .topbar-right > * {
+                flex: 1 1 auto;
+            }
+
+            .event-item,
+            .alert-item,
+            .browser-item {
+                grid-template-columns: 1fr;
+                text-align: left;
+            }
+
+            .mission-feed-item {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
+                transition: none !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient one"></div>
+    <div class="ambient two"></div>
+    <div class="ambient three"></div>
+
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark"><span class="material-icons-round">shield</span></div>
+                <div class="brand-copy">
+                    <h1>TrustCore AI</h1>
+                    <p>Live trust command center</p>
+                </div>
+            </div>
+
+            <nav class="nav">
+                <button class="nav-item active" data-page="dashboard">
+                    <span><span class="material-icons-round">space_dashboard</span> Dashboard</span>
+                    <span class="material-icons-round nav-indicator">chevron_right</span>
+                </button>
+                <button class="nav-item" data-page="users">
+                    <span><span class="material-icons-round">groups</span> Users</span>
+                    <span class="material-icons-round nav-indicator">chevron_right</span>
+                </button>
+                <button class="nav-item" data-page="analytics">
+                    <span><span class="material-icons-round">analytics</span> Analytics</span>
+                    <span class="material-icons-round nav-indicator">chevron_right</span>
+                </button>
+                <button class="nav-item" data-page="events">
+                    <span><span class="material-icons-round">bolt</span> Events</span>
+                    <span class="material-icons-round nav-indicator">chevron_right</span>
+                </button>
+                <button class="nav-item" data-page="alerts">
+                    <span><span class="material-icons-round">campaign</span> Alerts</span>
+                    <span class="material-icons-round nav-indicator">chevron_right</span>
+                </button>
+                <button class="nav-item" data-page="rules">
+                    <span><span class="material-icons-round">tune</span> Rules</span>
+                    <span class="material-icons-round nav-indicator">chevron_right</span>
+                </button>
+                <button class="nav-item" data-page="security">
+                    <span><span class="material-icons-round">verified_user</span> Security</span>
+                    <span class="material-icons-round nav-indicator">chevron_right</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-foot">
+                <div class="status-card">
+                    <span class="eyebrow">AI Core Status</span>
+                    <strong id="live-core-status">Booting live stream</strong>
+                    <p>Professional monitoring workspace with real-time anomaly updates, rule automation, and response controls.</p>
+                </div>
+            </div>
+        </aside>
+
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <section class="workspace">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" id="menu-toggle" type="button">
+                        <span class="material-icons-round">menu</span>
+                    </button>
+                    <div class="topbar-copy">
+                        <span class="eyebrow">Operational Cockpit</span>
+                        <h1 id="page-title">Executive Overview</h1>
+                        <p id="page-description">Professional trust intelligence with live scoring, analyst actions, and polished presentation-ready UI.</p>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <div class="live-pill" id="live-pill">
+                        <span class="live-dot"></span>
+                        <span id="live-status-text">Connecting to live telemetry</span>
+                    </div>
+                    <button class="ghost-btn" id="refresh-btn" type="button">
+                        <span class="material-icons-round">sync</span>
+                        Refresh
+                    </button>
+                    <button class="secondary-btn" id="export-btn" type="button">
+                        <span class="material-icons-round">download</span>
+                        CSV Export
+                    </button>
+                    <button class="primary-btn" id="pdf-btn" type="button">
+                        <span class="material-icons-round">picture_as_pdf</span>
+                        PDF Report
+                    </button>
+                </div>
+            </header>
+
+            <main class="page-stack">
+                <section id="page-dashboard" class="page active">
+                    <div class="hero-grid">
+                        <div class="hero-card">
+                            <div class="hero-copy">
+                                <span class="eyebrow">Trust Intelligence Platform</span>
+                                <h2>Make the project look like a real enterprise-grade security dashboard.</h2>
+                                <p>This upgraded interface blends premium layout, stronger motion, richer charts, live WebSocket updates, and analyst-ready workflows so your practical submission feels polished and complete.</p>
+                            </div>
+                            <div class="hero-actions">
+                                <button class="primary-btn" type="button" data-nav="alerts">
+                                    <span class="material-icons-round">notification_important</span>
+                                    Review Alerts
+                                </button>
+                                <button class="secondary-btn" type="button" data-nav="users">
+                                    <span class="material-icons-round">manage_search</span>
+                                    Open Analyst Desk
+                                </button>
+                            </div>
+                            <div class="hero-badges">
+                                <div class="badge-card">
+                                    <small>Active rules</small>
+                                    <strong id="hero-rules-count">0</strong>
+                                </div>
+                                <div class="badge-card">
+                                    <small>Sensitivity</small>
+                                    <strong id="hero-sensitivity">0.50x</strong>
+                                </div>
+                                <div class="badge-card">
+                                    <small>Watchlist identities</small>
+                                    <strong id="hero-watchlist">0</strong>
+                                </div>
+                                <div class="badge-card">
+                                    <small>Response latency</small>
+                                    <strong id="hero-latency">12ms</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="signal-card">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Mission Pulse</span>
+                                    <h3>Live trust index</h3>
+                                    <p>Streaming the latest platform confidence score.</p>
+                                </div>
+                                <div class="live-pill dark">
+                                    <span class="live-dot"></span>
+                                    <span>Live</span>
+                                </div>
+                            </div>
+
+                            <div class="score-ring" id="score-ring">
+                                <div class="score-inner">
+                                    <strong id="hero-score">0</strong>
+                                    <span>Average trust</span>
+                                </div>
+                            </div>
+
+                            <div class="signal-meta">
+                                <span class="signal-pill" id="hero-distribution">0 clean / 0 flagged</span>
+                                <span class="signal-pill" id="hero-refresh">Waiting for first sync</span>
+                            </div>
+
+                            <div class="mission-feed" id="mission-feed"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-grid">
+                        <div class="metric-card">
+                            <div class="metric-top">
+                                <div class="metric-icon brand"><span class="material-icons-round">groups</span></div>
+                                <span class="metric-chip">Live</span>
+                            </div>
+                            <p>Monitored identities</p>
+                            <h3 id="metric-users">0</h3>
+                            <small class="compact-note">Users actively tracked by the scoring engine.</small>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-top">
+                                <div class="metric-icon safe"><span class="material-icons-round">workspace_premium</span></div>
+                                <span class="metric-chip">AI Score</span>
+                            </div>
+                            <p>Trust index</p>
+                            <h3 id="metric-trust">0</h3>
+                            <small class="compact-note">Average confidence across all current profiles.</small>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-top">
+                                <div class="metric-icon danger"><span class="material-icons-round">warning</span></div>
+                                <span class="metric-chip">Risk</span>
+                            </div>
+                            <p>High-risk users</p>
+                            <h3 id="metric-anomalies">0</h3>
+                            <small class="compact-note">Accounts requiring immediate analyst attention.</small>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-top">
+                                <div class="metric-icon accent"><span class="material-icons-round">campaign</span></div>
+                                <span class="metric-chip">Ops</span>
+                            </div>
+                            <p>Alert history</p>
+                            <h3 id="metric-alerts">0</h3>
+                            <small class="compact-note">Triggered actions routed through dashboard automation.</small>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-top">
+                                <div class="metric-icon warning"><span class="material-icons-round">timer</span></div>
+                                <span class="metric-chip">Behavior</span>
+                            </div>
+                            <p>Avg session length</p>
+                            <h3 id="metric-session">0s</h3>
+                            <small class="compact-note">Average active session length from live logs.</small>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Trend Intelligence</span>
+                                    <h3>Trust score momentum</h3>
+                                    <p>Recent scoring trajectory across the latest monitored events.</p>
+                                </div>
+                                <span class="tiny-pill safe" id="trend-direction">Stable baseline</span>
+                            </div>
+                            <div class="chart-box"><canvas id="trendChart"></canvas></div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Distribution</span>
+                                    <h3>Risk posture mix</h3>
+                                    <p>Trusted, watchlist, and critical user split.</p>
+                                </div>
+                            </div>
+                            <div class="chart-box compact"><canvas id="riskChart"></canvas></div>
+                            <div class="mini-stat-grid" id="risk-breakdown"></div>
+                        </div>
+                    </div>
+
+                    <div class="split-grid">
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Priority Queue</span>
+                                    <h3>Analyst review board</h3>
+                                    <p>Lowest scoring profiles surfaced with direct action buttons.</p>
+                                </div>
+                            </div>
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Browser</th>
+                                            <th>Session</th>
+                                            <th>Score</th>
+                                            <th>Last update</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="queue-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Live Feed</span>
+                                    <h3>Recent activity stream</h3>
+                                    <p>Freshest telemetry from behavioral logs and websocket pushes.</p>
+                                </div>
+                            </div>
+                            <div class="event-list" id="dashboard-events"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="page-users" class="page">
+                    <div class="panel slim">
+                        <div class="toolbar">
+                            <div class="toolbar-group">
+                                <input class="input" id="users-search" type="search" placeholder="Search by user id or browser">
+                                <select class="select" id="users-filter">
+                                    <option value="all">All users</option>
+                                    <option value="safe">Trusted</option>
+                                    <option value="warning">Watchlist</option>
+                                    <option value="danger">High risk</option>
+                                </select>
+                            </div>
+                            <div class="toolbar-actions">
+                                <button class="secondary-btn" type="button" data-nav="events">
+                                    <span class="material-icons-round">travel_explore</span>
+                                    Open Event Stream
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="split-grid">
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Analyst Desk</span>
+                                    <h3>User trust matrix</h3>
+                                    <p>Search, filter, inspect, and label users from the upgraded dashboard.</p>
+                                </div>
+                            </div>
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Behavior</th>
+                                            <th>Score</th>
+                                            <th>Status</th>
+                                            <th>Updated</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="users-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Focused Review</span>
+                                    <h3>Analyst action panel</h3>
+                                    <p>Highlighting the next account that needs attention.</p>
+                                </div>
+                            </div>
+                            <div id="focus-user-card"></div>
+                            <div style="height: 16px;"></div>
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Top Risk</span>
+                                    <h3>Watchlist shortlist</h3>
+                                </div>
+                            </div>
+                            <div class="timeline" id="top-users-list"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="page-analytics" class="page">
+                    <div class="mini-stat-grid" id="analytics-mini-stats"></div>
+
+                    <div class="dashboard-grid">
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Behavior Shape</span>
+                                    <h3>Fingerprint radar</h3>
+                                    <p>Baseline, watchlist, and critical cohorts compared across core inputs.</p>
+                                </div>
+                            </div>
+                            <div class="chart-box"><canvas id="behaviorChart"></canvas></div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Browser Mix</span>
+                                    <h3>Client environment summary</h3>
+                                    <p>Environment share and average trust by browser signature.</p>
+                                </div>
+                            </div>
+                            <div class="browser-list" id="browser-breakdown"></div>
+                        </div>
+                    </div>
+
+                    <div class="analytics-grid">
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Sessions</span>
+                                    <h3>Duration bands</h3>
+                                    <p>How long users stay active before scoring updates.</p>
+                                </div>
+                            </div>
+                            <div class="chart-box compact"><canvas id="sessionChart"></canvas></div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Velocity</span>
+                                    <h3>Recent score rhythm</h3>
+                                    <p>Recent event confidence to show momentum at a glance.</p>
+                                </div>
+                            </div>
+                            <div class="chart-box compact"><canvas id="velocityChart"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="analytics-grid">
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Tuning</span>
+                                    <h3>Model sensitivity</h3>
+                                    <p>Adjust the trust engine sensitivity directly from the dashboard.</p>
+                                </div>
+                            </div>
+                            <form class="form-stack" id="settings-form">
+                                <div class="range-wrap">
+                                    <div class="toolbar">
+                                        <span class="meta-label">Current sensitivity</span>
+                                        <strong id="sensitivity-display">0.50x</strong>
+                                    </div>
+                                    <input id="sensitivity-slider" type="range" min="0.1" max="1.5" step="0.1" value="0.5">
+                                </div>
+                                <button class="primary-btn" type="submit">
+                                    <span class="material-icons-round">tune</span>
+                                    Save Sensitivity
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Model Notes</span>
+                                    <h3>Analyst-friendly insights</h3>
+                                    <p>Executive-ready commentary for the practical presentation.</p>
+                                </div>
+                            </div>
+                            <div class="detail-grid" id="insight-cards"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="page-events" class="page">
+                    <div class="panel slim">
+                        <div class="toolbar">
+                            <div class="filter-row">
+                                <button class="filter-chip active" type="button" data-event-filter="all">All events</button>
+                                <button class="filter-chip" type="button" data-event-filter="safe">Trusted</button>
+                                <button class="filter-chip" type="button" data-event-filter="warning">Watchlist</button>
+                                <button class="filter-chip" type="button" data-event-filter="danger">High risk</button>
+                            </div>
+                            <div class="toolbar-group">
+                                <input class="input" id="events-search" type="search" placeholder="Search user or browser">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="section-heading">
+                            <div>
+                                <span class="eyebrow">Live Timeline</span>
+                                <h3>Telemetry event stream</h3>
+                                <p>Filter by severity and inspect raw monitoring events in a polished timeline layout.</p>
+                            </div>
+                        </div>
+                        <div class="event-list" id="all-events"></div>
+                    </div>
+                </section>
+
+                <section id="page-alerts" class="page">
+                    <div class="alert-summary" id="alert-summary"></div>
+
+                    <div class="split-grid">
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Automation Builder</span>
+                                    <h3>Create alert rule</h3>
+                                    <p>Directly add new notification rules with thresholds and channels.</p>
+                                </div>
+                            </div>
+                            <form class="form-stack" id="rule-form">
+                                <div class="form-grid">
+                                    <div class="field">
+                                        <label for="rule-name">Rule name</label>
+                                        <input class="input" id="rule-name" type="text" placeholder="Critical score alert" required>
+                                    </div>
+                                    <div class="field">
+                                        <label for="rule-condition">Condition</label>
+                                        <select class="select" id="rule-condition">
+                                            <option value="below">Below threshold</option>
+                                            <option value="above">Above threshold</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-grid">
+                                    <div class="field">
+                                        <label for="rule-threshold">Threshold</label>
+                                        <input class="input" id="rule-threshold" type="number" min="0" max="100" value="40" required>
+                                    </div>
+                                    <div class="field">
+                                        <label>Channels</label>
+                                        <div class="checkbox-row">
+                                            <label class="check-pill"><input type="checkbox" name="rule-channel" value="dashboard" checked> Dashboard</label>
+                                            <label class="check-pill"><input type="checkbox" name="rule-channel" value="slack"> Slack</label>
+                                            <label class="check-pill"><input type="checkbox" name="rule-channel" value="discord"> Discord</label>
+                                            <label class="check-pill"><input type="checkbox" name="rule-channel" value="email"> Email</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="primary-btn" type="submit">
+                                    <span class="material-icons-round">add_alert</span>
+                                    Create Rule
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Incident Notes</span>
+                                    <h3>Response guidance</h3>
+                                    <p>Presentation-ready talking points built into the product.</p>
+                                </div>
+                            </div>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <p>Priority 1</p>
+                                    <strong>Escalate scores below 40 immediately.</strong>
+                                </div>
+                                <div class="detail-item">
+                                    <p>Automation</p>
+                                    <strong>Rules can notify dashboard, Slack, Discord, or email.</strong>
+                                </div>
+                                <div class="detail-item">
+                                    <p>Analyst flow</p>
+                                    <strong>Review profile, mark safe, or tighten thresholds.</strong>
+                                </div>
+                                <div class="detail-item">
+                                    <p>Reporting</p>
+                                    <strong>CSV and PDF exports are ready from the top bar.</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="section-heading">
+                            <div>
+                                <span class="eyebrow">Alert History</span>
+                                <h3>Triggered incidents</h3>
+                                <p>Past rule matches captured with severity-aware cards.</p>
+                            </div>
+                        </div>
+                        <div class="alert-list" id="alert-list"></div>
+                    </div>
+                </section>
+
+                <section id="page-rules" class="page">
+                    <div class="split-grid">
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Rule Engine</span>
+                                    <h3>Manage alert automation</h3>
+                                    <p>Toggle, review, and remove rules from a cleaner control board.</p>
+                                </div>
+                            </div>
+                            <div class="rule-grid" id="rule-list"></div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Quick Templates</span>
+                                    <h3>One-click presets</h3>
+                                    <p>Add common rules fast so the demo feels complete.</p>
+                                </div>
+                            </div>
+                            <div class="timeline">
+                                <div class="template-card">
+                                    <strong>Critical breach alarm</strong>
+                                    <p>Escalate any user below 25 directly to the dashboard.</p>
+                                    <div class="action-row" style="margin-top: 12px;">
+                                        <button class="mini-btn danger" type="button" data-template="critical">Create preset</button>
+                                    </div>
+                                </div>
+                                <div class="template-card">
+                                    <strong>Watchlist monitor</strong>
+                                    <p>Track users dropping below 45 and route for analyst review.</p>
+                                    <div class="action-row" style="margin-top: 12px;">
+                                        <button class="mini-btn warning" type="button" data-template="watchlist">Create preset</button>
+                                    </div>
+                                </div>
+                                <div class="template-card">
+                                    <strong>VIP verification</strong>
+                                    <p>Create a high-score checkpoint for premium trust sessions.</p>
+                                    <div class="action-row" style="margin-top: 12px;">
+                                        <button class="mini-btn safe" type="button" data-template="vip">Create preset</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="page-security" class="page">
+                    <div class="metric-grid">
+                        <div class="metric-card">
+                            <div class="metric-top">
+                                <div class="metric-icon danger"><span class="material-icons-round">block</span></div>
+                                <span class="metric-chip">Shield</span>
+                            </div>
+                            <p>Blocked IPs</p>
+                            <h3 id="blocked">0</h3>
+                            <small class="compact-note">Persisted blocks enforced by the backend.</small>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-top">
+                                <div class="metric-icon warning"><span class="material-icons-round">bolt</span></div>
+                                <span class="metric-chip">Rate limit</span>
+                            </div>
+                            <p>Rate-limited IPs</p>
+                            <h3 id="rate-limited">0</h3>
+                            <small class="compact-note">Connections actively held back by protection rules.</small>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-top">
+                                <div class="metric-icon accent"><span class="material-icons-round">bug_report</span></div>
+                                <span class="metric-chip">Threat</span>
+                            </div>
+                            <p>Bots detected</p>
+                            <h3 id="bots">0</h3>
+                            <small class="compact-note">Anomalous identities treated as likely automation.</small>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-top">
+                                <div class="metric-icon safe"><span class="material-icons-round">verified</span></div>
+                                <span class="metric-chip">Ops</span>
+                            </div>
+                            <p>Attack blocks</p>
+                            <h3 id="attacks">0</h3>
+                            <small class="compact-note">Combined blocked actions and enforced interventions.</small>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-top">
+                                <div class="metric-icon brand"><span class="material-icons-round">shield</span></div>
+                                <span class="metric-chip">Live</span>
+                            </div>
+                            <p>Defense state</p>
+                            <h3 id="defense-state">Ready</h3>
+                            <small class="compact-note">Quick visual status for the security layer.</small>
+                        </div>
+                    </div>
+
+                    <div class="split-grid">
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Manual Control</span>
+                                    <h3>Block an IP address</h3>
+                                    <p>Add a manual block to simulate a real incident response workflow.</p>
+                                </div>
+                            </div>
+                            <form class="form-stack" id="block-ip-form">
+                                <div class="field">
+                                    <label for="block-ip">IP Address</label>
+                                    <input class="input" id="block-ip" type="text" placeholder="192.168.0.25" required>
+                                </div>
+                                <div class="field">
+                                    <label for="block-reason">Reason</label>
+                                    <input class="input" id="block-reason" type="text" placeholder="Suspicious request pattern" required>
+                                </div>
+                                <button class="primary-btn" type="submit">
+                                    <span class="material-icons-round">gpp_bad</span>
+                                    Block IP
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="panel">
+                            <div class="section-heading">
+                                <div>
+                                    <span class="eyebrow">Defense Checklist</span>
+                                    <h3>Security quick actions</h3>
+                                    <p>Useful controls and talking points for the demo presentation.</p>
+                                </div>
+                            </div>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <p>Rate shield</p>
+                                    <strong id="security-rate-note">0 active tracked clients</strong>
+                                </div>
+                                <div class="detail-item">
+                                    <p>Rule coverage</p>
+                                    <strong id="security-rule-note">0 active rules protecting the system</strong>
+                                </div>
+                                <div class="detail-item">
+                                    <p>Escalation path</p>
+                                    <strong>Open alerts, inspect the user, then mark safe or block.</strong>
+                                </div>
+                                <div class="detail-item">
+                                    <p>Emergency action</p>
+                                    <button class="secondary-btn" id="unblock-all-btn" type="button">
+                                        <span class="material-icons-round">restart_alt</span>
+                                        Unblock All
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="section-heading">
+                            <div>
+                                <span class="eyebrow">Access Control</span>
+                                <h3>Blocked IP register</h3>
+                                <p>Current network-level interventions with direct unblock controls.</p>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>IP</th>
+                                        <th>Reason</th>
+                                        <th>Expires</th>
+                                        <th>Created</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="blocked-ips-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </section>
+    </div>
+
+    <div class="modal" id="profile-modal">
+        <div class="modal-panel">
+            <div class="modal-head">
+                <div>
+                    <span class="eyebrow">Profile Inspector</span>
+                    <h3>User trust profile</h3>
+                </div>
+                <button class="icon-btn" type="button" id="close-modal-btn">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+            <div id="profile-content"></div>
+        </div>
+    </div>
+
+    <div class="toast-stack" id="toast-stack"></div>
+
+    <script>
+        const API = window.location.origin && window.location.origin !== 'null' && window.location.origin.startsWith('http')
+            ? window.location.origin
+            : 'http://localhost:8000';
+        const WS_URL = window.location.origin && window.location.origin !== 'null' && window.location.origin.startsWith('http')
+            ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws`
+            : 'ws://localhost:8000/ws';
+
+        const pageMeta = {
+            dashboard: {
+                title: 'Executive Overview',
+                description: 'Professional trust intelligence with live scoring, polished motion, and presentation-ready metrics.'
+            },
+            users: {
+                title: 'User Intelligence Desk',
+                description: 'Search and investigate user trust profiles with direct analyst actions.'
+            },
+            analytics: {
+                title: 'Behavior Analytics',
+                description: 'Visualize fingerprint patterns, trend clusters, and engine sensitivity.'
+            },
+            events: {
+                title: 'Telemetry Event Stream',
+                description: 'Filter the live event timeline and inspect scoring activity in real time.'
+            },
+            alerts: {
+                title: 'Alert Automation',
+                description: 'Create new rules, review incident history, and present operational readiness.'
+            },
+            rules: {
+                title: 'Rule Engine Control',
+                description: 'Manage automation logic with toggles, quick templates, and clean controls.'
+            },
+            security: {
+                title: 'Security Response Center',
+                description: 'Manage blocked IPs, rate limiting, and protection posture from one place.'
+            }
+        };
+
+        const state = {
+            currentPage: 'dashboard',
+            stats: { totalUsers: 0, avgScore: 0, anomalies: 0 },
+            users: [],
+            logs: [],
+            anomalies: [],
+            alerts: [],
+            rules: [],
+            blockedIps: [],
+            rateLimit: { blocked_ips: [], active_limited: 0 },
+            settings: { sensitivity: 0.5 },
+            charts: {},
+            filters: {
+                users: 'all',
+                userSearch: '',
+                events: 'all',
+                eventSearch: ''
+            },
+            usersById: new Map(),
+            profileCache: new Map(),
+            liveFeed: [],
+            socket: null,
+            heartbeat: null,
+            lastRefreshLabel: 'Waiting for first sync'
+        };
+
+        const $ = (id) => document.getElementById(id);
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
+        }
+
+        function formatShortTime(value) {
+            if (!value) return '--';
+            const date = new Date(value);
+            if (!Number.isNaN(date.getTime())) {
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+            const parts = String(value).split(' ');
+            return parts[3] || parts[1] || value;
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '--';
+            const date = new Date(value);
+            if (!Number.isNaN(date.getTime())) {
+                return date.toLocaleString([], {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+            return value;
+        }
+
+        function formatNumber(value, decimals = 0) {
+            const num = Number(value || 0);
+            return decimals ? num.toFixed(decimals) : Math.round(num).toString();
+        }
+
+        function formatDuration(seconds) {
+            const value = Number(seconds || 0);
+            if (value >= 3600) return `${(value / 3600).toFixed(1)}h`;
+            if (value >= 60) return `${Math.round(value / 60)}m`;
+            return `${Math.round(value)}s`;
+        }
+
+        function initials(name) {
+            return String(name || '?')
+                .split(/[\s_-]+/)
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((part) => part[0].toUpperCase())
+                .join('');
+        }
+
+        function average(items, key) {
+            if (!items.length) return 0;
+            return items.reduce((sum, item) => sum + Number(item[key] || 0), 0) / items.length;
+        }
+
+        function getRiskMeta(score) {
+            const value = Number(score || 0);
+            if (value >= 70) return { tone: 'safe', label: 'Trusted', text: 'Confidence stable' };
+            if (value >= 40) return { tone: 'warning', label: 'Watchlist', text: 'Needs review' };
+            return { tone: 'danger', label: 'High Risk', text: 'Immediate action' };
+        }
+
+        function deriveLogScore(log) {
+            const existing = state.usersById.get(log.userId);
+            if (existing) return Number(existing.score || 0);
+            let score = 82;
+            score -= clamp((180 - Number(log.interval || 0)) / 8, 0, 18);
+            score -= clamp((30 - Number(log.variance || 0)) / 2, 0, 12);
+            score -= clamp((Number(log.scroll || 0) - 800) / 120, 0, 18);
+            score -= clamp((Number(log.tabSwitches || 0) - 5) * 4, 0, 18);
+            score -= clamp((20 - Number(log.duration || 0)) / 2, 0, 10);
+            return Math.round(clamp(score, 0, 100));
+        }
+
+        function animateNumber(element, target, formatter = (value) => Math.round(value)) {
+            if (!element) return;
+            const end = Number(target || 0);
+            const start = Number(element.dataset.value || 0);
+            const duration = 650;
+            const startTime = performance.now();
+
+            function frame(now) {
+                const progress = clamp((now - startTime) / duration, 0, 1);
+                const current = start + (end - start) * progress;
+                element.textContent = formatter(current);
+                if (progress < 1) {
+                    requestAnimationFrame(frame);
+                } else {
+                    element.dataset.value = String(end);
+                    element.textContent = formatter(end);
+                }
+            }
+
+            requestAnimationFrame(frame);
+        }
+
+        function showToast(message, tone = 'success') {
+            const stack = $('toast-stack');
+            const toast = document.createElement('div');
+            toast.className = `toast ${tone}`;
+            toast.textContent = message;
+            stack.appendChild(toast);
+            setTimeout(() => toast.remove(), 3400);
+        }
+
+        async function fetchJson(path, options = {}) {
+            const response = await fetch(`${API}${path}`, {
+                headers: { 'Content-Type': 'application/json' },
+                ...options
+            });
+            if (!response.ok) {
+                throw new Error(`Request failed for ${path} (${response.status})`);
+            }
+            return response.json();
+        }
+
+        async function requestJson(path, method, body) {
+            return fetchJson(path, {
+                method,
+                body: JSON.stringify(body)
+            });
+        }
+
+        function setLiveState(mode, text) {
+            const pill = $('live-pill');
+            pill.className = 'live-pill';
+            if (mode === 'warning') pill.classList.add('warning');
+            if (mode === 'danger') pill.classList.add('danger');
+            $('live-status-text').textContent = text;
+            $('live-core-status').textContent = text;
+        }
+
+        function updateHeaderForPage(page) {
+            const meta = pageMeta[page];
+            $('page-title').textContent = meta.title;
+            $('page-description').textContent = meta.description;
+        }
+
+        function setPage(page) {
+            state.currentPage = page;
+            document.querySelectorAll('.nav-item').forEach((item) => {
+                item.classList.toggle('active', item.dataset.page === page);
+            });
+            document.querySelectorAll('.page').forEach((section) => {
+                section.classList.toggle('active', section.id === `page-${page}`);
+            });
+            updateHeaderForPage(page);
+            document.body.classList.remove('sidebar-open');
+            if (page === 'analytics') {
+                ensureAnalyticsCharts();
+                renderAnalytics();
+            }
+            setTimeout(resizeCharts, 180);
+        }
+
+        function resizeCharts() {
+            Object.values(state.charts).forEach((chart) => chart && chart.resize());
+        }
+
+        function refreshUserMap() {
+            state.usersById = new Map(getEffectiveUsers().map((user) => [user.userId, user]));
+        }
+
+        function trendDirectionText(scores) {
+            if (scores.length < 6) return 'Gathering trend';
+            const half = Math.floor(scores.length / 2);
+            const first = average(scores.slice(0, half).map((score) => ({ value: score })), 'value');
+            const second = average(scores.slice(half).map((score) => ({ value: score })), 'value');
+            const diff = second - first;
+            if (diff > 5) return 'Improving trust';
+            if (diff < -5) return 'Rising risk';
+            return 'Stable baseline';
+        }
+
+        function createGradient(context, start, end) {
+            const gradient = context.createLinearGradient(0, 0, 0, 320);
+            gradient.addColorStop(0, start);
+            gradient.addColorStop(1, end);
+            return gradient;
+        }
+
+        function ensureDashboardCharts() {
+            if (state.charts.trend && state.charts.risk) return;
+
+            const trendCtx = $('trendChart').getContext('2d');
+            state.charts.trend = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Trust score',
+                        data: [],
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.35,
+                        borderColor: '#0f766e',
+                        backgroundColor: createGradient(trendCtx, 'rgba(15, 118, 110, 0.26)', 'rgba(15, 118, 110, 0.02)'),
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: '#ea580c'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            grid: { color: 'rgba(16, 35, 61, 0.08)' },
+                            ticks: { color: '#62748a' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#62748a' }
+                        }
+                    }
+                }
+            });
+
+            state.charts.risk = new Chart($('riskChart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Trusted', 'Watchlist', 'High Risk'],
+                    datasets: [{
+                        data: [0, 0, 0],
+                        backgroundColor: ['#059669', '#c0841a', '#dc2626'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '68%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#62748a',
+                                usePointStyle: true,
+                                padding: 18
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function ensureAnalyticsCharts() {
+            if (!state.charts.behavior) {
+                state.charts.behavior = new Chart($('behaviorChart').getContext('2d'), {
+                    type: 'radar',
+                    data: {
+                        labels: ['Click pace', 'Variance', 'Scroll speed', 'Session length', 'Tab switching'],
+                        datasets: [
+                            {
+                                label: 'Trusted',
+                                data: [],
+                                backgroundColor: 'rgba(5, 150, 105, 0.16)',
+                                borderColor: '#059669',
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'Watchlist',
+                                data: [],
+                                backgroundColor: 'rgba(192, 132, 26, 0.16)',
+                                borderColor: '#c0841a',
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'High Risk',
+                                data: [],
+                                backgroundColor: 'rgba(220, 38, 38, 0.12)',
+                                borderColor: '#dc2626',
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: '#62748a' } }
+                        },
+                        scales: {
+                            r: {
+                                suggestedMin: 0,
+                                suggestedMax: 100,
+                                angleLines: { color: 'rgba(16, 35, 61, 0.08)' },
+                                grid: { color: 'rgba(16, 35, 61, 0.08)' },
+                                pointLabels: { color: '#10233d' },
+                                ticks: {
+                                    display: false,
+                                    stepSize: 20
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            if (!state.charts.session) {
+                state.charts.session = new Chart($('sessionChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['0-30s', '30-60s', '1-3m', '3-6m', '6m+'],
+                        datasets: [{
+                            data: [],
+                            backgroundColor: ['#d8f3ed', '#9adccf', '#34d399', '#0f766e', '#10233d'],
+                            borderRadius: 14
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { grid: { color: 'rgba(16, 35, 61, 0.08)' }, ticks: { color: '#62748a' } },
+                            x: { grid: { display: false }, ticks: { color: '#62748a' } }
+                        }
+                    }
+                });
+            }
+
+            if (!state.charts.velocity) {
+                state.charts.velocity = new Chart($('velocityChart').getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            data: [],
+                            borderColor: '#ea580c',
+                            backgroundColor: 'rgba(234, 88, 12, 0.12)',
+                            fill: true,
+                            tension: 0.34,
+                            pointRadius: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { min: 0, max: 100, grid: { color: 'rgba(16, 35, 61, 0.08)' }, ticks: { color: '#62748a' } },
+                            x: { grid: { display: false }, ticks: { color: '#62748a' } }
+                        }
+                    }
+                });
+            }
+        }
+
+        function normalizeMetric(value, type) {
+            const number = Number(value || 0);
+            if (type === 'interval') return clamp(number / 12, 0, 100);
+            if (type === 'variance') return clamp(number, 0, 100);
+            if (type === 'scroll') return clamp(number / 30, 0, 100);
+            if (type === 'duration') return clamp(number / 6, 0, 100);
+            if (type === 'tabs') return clamp(number * 12, 0, 100);
+            return clamp(number, 0, 100);
+        }
+
+        function buildSignalFromLog(log) {
+            const score = Number(log.liveScore ?? deriveLogScore(log));
+            const meta = getRiskMeta(score);
+            return {
+                userId: log.userId,
+                score,
+                tone: meta.tone,
+                label: meta.label,
+                time: log.time || log.lastUpdated || new Date().toString(),
+                browser: log.browser || 'Unknown',
+                interval: log.interval || 0
+            };
+        }
+
+        function upsertLiveUser(metric) {
+            const existing = state.users.find((entry) => entry.userId === metric.userId);
+            const liveUser = {
+                userId: metric.userId,
+                score: Number(metric.score ?? existing?.score ?? 0),
+                lastUpdated: metric.time || existing?.lastUpdated || existing?.time || new Date().toString(),
+                browser: metric.browser || existing?.browser || 'Live session',
+                interval: Number(metric.interval ?? existing?.interval ?? 0),
+                variance: Number(metric.variance ?? existing?.variance ?? 0),
+                scroll: Number(metric.scroll ?? existing?.scroll ?? 0),
+                duration: Number(metric.duration ?? existing?.duration ?? 0),
+                tabSwitches: Number(metric.tabSwitches ?? existing?.tabSwitches ?? 0),
+                time: metric.time || existing?.time || new Date().toString(),
+                sessionId: metric.sessionId || existing?.sessionId || 'Live'
+            };
+
+            if (existing) {
+                Object.assign(existing, liveUser);
+            } else {
+                state.users.unshift(liveUser);
+            }
+
+            state.users = [...state.users]
+                .sort((a, b) => {
+                    const scoreDiff = Number(a.score || 0) - Number(b.score || 0);
+                    if (scoreDiff !== 0) return scoreDiff;
+                    return String(b.lastUpdated || '').localeCompare(String(a.lastUpdated || ''));
+                })
+                .slice(0, 100);
+        }
+
+        function deriveUsersFromLogs() {
+            const latestByUser = new Map();
+
+            state.logs.forEach((log) => {
+                if (latestByUser.has(log.userId)) return;
+                latestByUser.set(log.userId, {
+                    userId: log.userId,
+                    score: Number(log.liveScore ?? deriveLogScore(log)),
+                    lastUpdated: log.time || new Date().toString(),
+                    browser: log.browser || 'Unknown',
+                    interval: Number(log.interval || 0),
+                    variance: Number(log.variance || 0),
+                    scroll: Number(log.scroll || 0),
+                    duration: Number(log.duration || 0),
+                    tabSwitches: Number(log.tabSwitches || 0),
+                    time: log.time || new Date().toString(),
+                    sessionId: log.sessionId || 'N/A'
+                });
+            });
+
+            return [...latestByUser.values()]
+                .sort((a, b) => {
+                    const scoreDiff = Number(a.score || 0) - Number(b.score || 0);
+                    if (scoreDiff !== 0) return scoreDiff;
+                    return String(b.lastUpdated || '').localeCompare(String(a.lastUpdated || ''));
+                })
+                .slice(0, 100);
+        }
+
+        function getEffectiveUsers() {
+            const merged = new Map(deriveUsersFromLogs().map((user) => [user.userId, user]));
+
+            state.users.forEach((user) => {
+                merged.set(user.userId, {
+                    ...(merged.get(user.userId) || {}),
+                    ...user
+                });
+            });
+
+            return [...merged.values()]
+                .sort((a, b) => {
+                    const scoreDiff = Number(a.score || 0) - Number(b.score || 0);
+                    if (scoreDiff !== 0) return scoreDiff;
+                    return String(b.lastUpdated || '').localeCompare(String(a.lastUpdated || ''));
+                })
+                .slice(0, 100);
+        }
+
+        function getFilteredUsers() {
+            return getEffectiveUsers().filter((user) => {
+                const meta = getRiskMeta(user.score);
+                const query = state.filters.userSearch.trim().toLowerCase();
+                const matchesSearch = !query
+                    || user.userId.toLowerCase().includes(query)
+                    || (user.browser || '').toLowerCase().includes(query);
+                const matchesFilter = state.filters.users === 'all' || meta.tone === state.filters.users;
+                return matchesSearch && matchesFilter;
+            });
+        }
+
+        function getFilteredEvents() {
+            return state.logs.filter((log) => {
+                const score = deriveLogScore(log);
+                const meta = getRiskMeta(score);
+                const query = state.filters.eventSearch.trim().toLowerCase();
+                const matchesSearch = !query
+                    || log.userId.toLowerCase().includes(query)
+                    || (log.browser || '').toLowerCase().includes(query);
+                const matchesFilter = state.filters.events === 'all' || meta.tone === state.filters.events;
+                return matchesSearch && matchesFilter;
+            });
+        }
+
+        function renderMissionFeed() {
+            const source = state.liveFeed.length
+                ? state.liveFeed.slice(0, 4)
+                : state.logs.slice(0, 4).map(buildSignalFromLog);
+
+            if (!source.length) {
+                $('mission-feed').innerHTML = '<div class="empty-state"><span class="material-icons-round">sensors</span><h4>No live events yet</h4><p>Start collecting behavioral data to populate the signal feed.</p></div>';
+                return;
+            }
+
+            $('mission-feed').innerHTML = source.map((item) => `
+                <div class="mission-feed-item">
+                    <div>
+                        <strong>${escapeHtml(item.userId)}</strong>
+                        <span>${escapeHtml(item.browser)} • ${formatShortTime(item.time)}</span>
+                    </div>
+                    <span class="score-chip ${item.tone}">${formatNumber(item.score)} • ${escapeHtml(item.label)}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderDashboard() {
+            ensureDashboardCharts();
+
+            const effectiveUsers = getEffectiveUsers();
+            const safeCount = effectiveUsers.filter((user) => user.score >= 70).length;
+            const warningCount = effectiveUsers.filter((user) => user.score >= 40 && user.score < 70).length;
+            const dangerCount = effectiveUsers.filter((user) => user.score < 40).length;
+            const avgSession = average(state.logs, 'duration');
+            const scores = state.logs.slice(0, 12).map((log) => deriveLogScore(log)).reverse();
+            const labels = state.logs.slice(0, 12).map((log) => formatShortTime(log.time)).reverse();
+            const trendText = trendDirectionText(scores);
+
+            animateNumber($('metric-users'), state.stats.totalUsers, (value) => Math.round(value));
+            animateNumber($('metric-trust'), state.stats.avgScore, (value) => value.toFixed(1));
+            animateNumber($('metric-anomalies'), state.stats.anomalies, (value) => Math.round(value));
+            animateNumber($('metric-alerts'), state.alerts.length, (value) => Math.round(value));
+            animateNumber($('metric-session'), avgSession, (value) => formatDuration(value));
+
+            animateNumber($('hero-score'), state.stats.avgScore, (value) => Math.round(value));
+            $('score-ring').style.setProperty('--score', clamp(Number(state.stats.avgScore || 0), 0, 100));
+            $('hero-rules-count').textContent = String(state.rules.filter((rule) => rule.enabled).length);
+            $('hero-sensitivity').textContent = `${Number(state.settings.sensitivity || 0).toFixed(2)}x`;
+            $('hero-watchlist').textContent = String(warningCount + dangerCount);
+            $('hero-distribution').textContent = `${safeCount} trusted / ${warningCount + dangerCount} flagged`;
+            $('hero-refresh').textContent = state.lastRefreshLabel;
+            $('trend-direction').textContent = trendText;
+
+            renderMissionFeed();
+
+            state.charts.trend.data.labels = labels;
+            state.charts.trend.data.datasets[0].data = scores;
+            state.charts.trend.update();
+
+            state.charts.risk.data.datasets[0].data = [safeCount, warningCount, dangerCount];
+            state.charts.risk.update();
+
+            $('risk-breakdown').innerHTML = [
+                { label: 'Trusted', value: safeCount, tone: 'safe' },
+                { label: 'Watchlist', value: warningCount, tone: 'warning' },
+                { label: 'High risk', value: dangerCount, tone: 'danger' }
+            ].map((item) => `
+                <div class="mini-stat">
+                    <p>${item.label}</p>
+                    <strong style="color: var(--${item.tone});">${item.value}</strong>
+                </div>
+            `).join('');
+
+            const queue = [...effectiveUsers].sort((a, b) => a.score - b.score).slice(0, 6);
+            $('queue-table-body').innerHTML = queue.length
+                ? queue.map((user) => {
+                    const meta = getRiskMeta(user.score);
+                    return `
+                        <tr>
+                            <td>
+                                <div class="table-user">
+                                    <div class="avatar">${escapeHtml(initials(user.userId))}</div>
+                                    <div>
+                                        <strong>${escapeHtml(user.userId)}</strong>
+                                        <div class="table-subtext">${escapeHtml(user.browser || 'Unknown')}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${escapeHtml(user.browser || 'Unknown')}</td>
+                            <td>${escapeHtml(user.sessionId || 'N/A')}</td>
+                            <td><span class="score-chip ${meta.tone}">${formatNumber(user.score, 1)}</span></td>
+                            <td>${escapeHtml(formatDateTime(user.lastUpdated || user.time))}</td>
+                            <td>
+                                <div class="inline-actions">
+                                    <button class="mini-btn" type="button" data-action="profile" data-user="${escapeHtml(user.userId)}">Profile</button>
+                                    <button class="mini-btn safe" type="button" data-action="safe" data-user="${escapeHtml(user.userId)}">Mark safe</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('')
+                : `<tr><td colspan="6"><div class="empty-state"><span class="material-icons-round">hourglass_empty</span><h4>No queue items</h4><p>User scores will appear here after data collection.</p></div></td></tr>`;
+
+            $('dashboard-events').innerHTML = state.logs.slice(0, 6).map((log) => renderEventCard(log)).join('')
+                || '<div class="empty-state"><span class="material-icons-round">timeline</span><h4>No events found</h4><p>Collect user activity to populate the live feed.</p></div>';
+        }
+
+        function renderEventCard(log) {
+            const score = deriveLogScore(log);
+            const meta = getRiskMeta(score);
+            return `
+                <div class="event-item ${meta.tone}">
+                    <span class="material-icons-round">bolt</span>
+                    <div class="event-copy">
+                        <strong>${escapeHtml(log.userId)}</strong>
+                        <p>${escapeHtml(log.browser || 'Unknown')} • ${formatNumber(log.interval)}ms interval • ${formatDuration(log.duration)} session</p>
+                    </div>
+                    <div>
+                        <div class="score-chip ${meta.tone}">${formatNumber(score)} • ${meta.label}</div>
+                        <div class="table-subtext" style="margin-top: 8px; text-align: right;">${escapeHtml(formatShortTime(log.time))}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderUsers() {
+            const users = getFilteredUsers();
+            $('users-table-body').innerHTML = users.length
+                ? users.map((user) => {
+                    const meta = getRiskMeta(user.score);
+                    return `
+                        <tr>
+                            <td>
+                                <div class="table-user">
+                                    <div class="avatar">${escapeHtml(initials(user.userId))}</div>
+                                    <div>
+                                        <strong>${escapeHtml(user.userId)}</strong>
+                                        <div class="table-subtext">${escapeHtml(user.browser || 'Unknown')}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${formatNumber(user.interval)}ms • ${formatDuration(user.duration)}</td>
+                            <td><span class="score-chip ${meta.tone}">${formatNumber(user.score, 1)}</span></td>
+                            <td><span class="status-chip ${meta.tone}">${meta.label}</span></td>
+                            <td>${escapeHtml(formatDateTime(user.lastUpdated || user.time))}</td>
+                            <td>
+                                <div class="inline-actions">
+                                    <button class="mini-btn" type="button" data-action="profile" data-user="${escapeHtml(user.userId)}">Inspect</button>
+                                    <button class="mini-btn safe" type="button" data-action="safe" data-user="${escapeHtml(user.userId)}">Safe</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('')
+                : `<tr><td colspan="6"><div class="empty-state"><span class="material-icons-round">person_search</span><h4>No matching users</h4><p>Adjust the filters or wait for more data.</p></div></td></tr>`;
+
+            const effectiveUsers = getEffectiveUsers();
+            const focusUser = [...effectiveUsers].sort((a, b) => a.score - b.score)[0];
+            $('focus-user-card').innerHTML = focusUser
+                ? (() => {
+                    const meta = getRiskMeta(focusUser.score);
+                    return `
+                        <div class="focus-card">
+                            <strong>${escapeHtml(focusUser.userId)}</strong>
+                            <p>${escapeHtml(meta.text)} • ${escapeHtml(focusUser.browser || 'Unknown')} • updated ${escapeHtml(formatShortTime(focusUser.lastUpdated || focusUser.time))}</p>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <p>Trust score</p>
+                                    <strong>${formatNumber(focusUser.score, 1)}</strong>
+                                </div>
+                                <div class="detail-item">
+                                    <p>Session length</p>
+                                    <strong>${formatDuration(focusUser.duration)}</strong>
+                                </div>
+                                <div class="detail-item">
+                                    <p>Scroll speed</p>
+                                    <strong>${formatNumber(focusUser.scroll)} px</strong>
+                                </div>
+                                <div class="detail-item">
+                                    <p>Tab switches</p>
+                                    <strong>${formatNumber(focusUser.tabSwitches)}</strong>
+                                </div>
+                            </div>
+                            <div class="action-row" style="margin-top: 16px;">
+                                <button class="primary-btn" type="button" data-action="profile" data-user="${escapeHtml(focusUser.userId)}">Open full profile</button>
+                                <button class="secondary-btn" type="button" data-action="safe" data-user="${escapeHtml(focusUser.userId)}">Mark safe</button>
+                            </div>
+                        </div>
+                    `;
+                })()
+                : '<div class="empty-state"><span class="material-icons-round">manage_accounts</span><h4>No profiles yet</h4><p>User trust details will appear here after scoring starts.</p></div>';
+
+            $('top-users-list').innerHTML = [...effectiveUsers]
+                .sort((a, b) => a.score - b.score)
+                .slice(0, 5)
+                .map((user) => {
+                    const meta = getRiskMeta(user.score);
+                    return `
+                        <div class="timeline-item">
+                            <div class="timeline-marker" style="background: var(--${meta.tone}); box-shadow: 0 0 0 6px rgba(${meta.tone === 'danger' ? '220, 38, 38' : meta.tone === 'warning' ? '202, 138, 4' : '5, 150, 105'}, 0.14);"></div>
+                            <div>
+                                <strong>${escapeHtml(user.userId)}</strong>
+                                <p>${escapeHtml(user.browser || 'Unknown')} • ${formatNumber(user.score, 1)} • ${meta.label}</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('') || '<div class="empty-state"><span class="material-icons-round">priority_high</span><h4>No watchlist yet</h4><p>Critical users will appear here automatically.</p></div>';
+        }
+
+        function renderAnalytics() {
+            if (state.currentPage !== 'analytics' && !state.charts.behavior) {
+                return;
+            }
+            ensureAnalyticsCharts();
+
+            const effectiveUsers = getEffectiveUsers();
+            const safeUsers = effectiveUsers.filter((user) => user.score >= 70);
+            const warningUsers = effectiveUsers.filter((user) => user.score >= 40 && user.score < 70);
+            const dangerUsers = effectiveUsers.filter((user) => user.score < 40);
+
+            const cohorts = [safeUsers, warningUsers, dangerUsers];
+            const metricKeys = ['interval', 'variance', 'scroll', 'duration', 'tabSwitches'];
+            const normalizers = ['interval', 'variance', 'scroll', 'duration', 'tabs'];
+
+            cohorts.forEach((cohort, index) => {
+                const normalized = metricKeys.map((key, metricIndex) => normalizeMetric(average(cohort, key), normalizers[metricIndex]));
+                state.charts.behavior.data.datasets[index].data = normalized;
+            });
+            state.charts.behavior.update();
+
+            const sessionBuckets = [0, 0, 0, 0, 0];
+            state.logs.forEach((log) => {
+                const duration = Number(log.duration || 0);
+                if (duration < 30) sessionBuckets[0] += 1;
+                else if (duration < 60) sessionBuckets[1] += 1;
+                else if (duration < 180) sessionBuckets[2] += 1;
+                else if (duration < 360) sessionBuckets[3] += 1;
+                else sessionBuckets[4] += 1;
+            });
+            state.charts.session.data.datasets[0].data = sessionBuckets;
+            state.charts.session.update();
+
+            const recentScores = state.logs.slice(0, 10).reverse().map((log) => deriveLogScore(log));
+            state.charts.velocity.data.labels = state.logs.slice(0, 10).reverse().map((log) => formatShortTime(log.time));
+            state.charts.velocity.data.datasets[0].data = recentScores;
+            state.charts.velocity.update();
+
+            $('analytics-mini-stats').innerHTML = [
+                { label: 'Avg click interval', value: `${formatNumber(average(state.logs, 'interval'))}ms` },
+                { label: 'Avg variance', value: formatNumber(average(state.logs, 'variance'), 1) },
+                { label: 'Avg scroll speed', value: `${formatNumber(average(state.logs, 'scroll'))} px` },
+                { label: 'Avg tab switching', value: formatNumber(average(state.logs, 'tabSwitches'), 1) }
+            ].map((item) => `
+                <div class="mini-stat">
+                    <p>${item.label}</p>
+                    <strong>${item.value}</strong>
+                </div>
+            `).join('');
+
+            const browserMap = new Map();
+            effectiveUsers.forEach((user) => {
+                const key = user.browser || 'Unknown';
+                if (!browserMap.has(key)) browserMap.set(key, []);
+                browserMap.get(key).push(user);
+            });
+
+            $('browser-breakdown').innerHTML = [...browserMap.entries()].map(([browser, users]) => `
+                <div class="browser-item">
+                    <span class="material-icons-round">language</span>
+                    <div class="browser-copy">
+                        <strong>${escapeHtml(browser)}</strong>
+                        <p>${users.length} users • avg score ${formatNumber(average(users, 'score'), 1)}</p>
+                    </div>
+                    <span class="status-chip ${getRiskMeta(average(users, 'score')).tone}">${formatNumber(average(users, 'score'), 1)}</span>
+                </div>
+            `).join('') || '<div class="empty-state"><span class="material-icons-round">language</span><h4>No browser data yet</h4><p>Browsers will appear after users are scored.</p></div>';
+
+            $('sensitivity-slider').value = Number(state.settings.sensitivity || 0.5);
+            $('sensitivity-display').textContent = `${Number(state.settings.sensitivity || 0.5).toFixed(2)}x`;
+
+            $('insight-cards').innerHTML = [
+                {
+                    label: 'Operational health',
+                    value: state.stats.avgScore >= 60 ? 'Trust posture looks stable for the current sample.' : 'Risk posture is mixed, which is useful for demo storytelling.'
+                },
+                {
+                    label: 'Best presenter line',
+                    value: 'The UI combines live monitoring, analytics, automation rules, and response controls in one place.'
+                },
+                {
+                    label: 'Alert narrative',
+                    value: state.alerts.length ? `${state.alerts.length} incident records prove the rule engine is active.` : 'Create a rule from the Alerts page to demonstrate automation in seconds.'
+                },
+                {
+                    label: 'Security narrative',
+                    value: `${state.rules.filter((rule) => rule.enabled).length} active rules with ${state.rateLimit.active_limited || 0} tracked clients show layered defense.`
+                }
+            ].map((item) => `
+                <div class="detail-item">
+                    <p>${item.label}</p>
+                    <strong>${escapeHtml(item.value)}</strong>
+                </div>
+            `).join('');
+        }
+
+        function renderEvents() {
+            const events = getFilteredEvents();
+            $('all-events').innerHTML = events.length
+                ? events.map((log) => renderEventCard(log)).join('')
+                : '<div class="empty-state"><span class="material-icons-round">travel_explore</span><h4>No events match this filter</h4><p>Try a different severity or search term.</p></div>';
+        }
+
+        function renderAlerts() {
+            const critical = state.alerts.filter((alert) => Number(alert.score || 0) < 40).length;
+            const warning = state.alerts.filter((alert) => Number(alert.score || 0) >= 40).length;
+            const channels = new Set(state.alerts.map((alert) => alert.channel || 'dashboard'));
+
+            $('alert-summary').innerHTML = [
+                { label: 'Total incidents', value: state.alerts.length, tone: 'brand' },
+                { label: 'Critical alerts', value: critical, tone: 'danger' },
+                { label: 'Notification routes', value: channels.size || 1, tone: 'warning' }
+            ].map((item) => `
+                <div class="alert-summary-card">
+                    <p>${item.label}</p>
+                    <strong style="display:block; margin-top:10px; font-size:1.8rem; font-family:'Space Grotesk',sans-serif; color: var(--${item.tone});">${item.value}</strong>
+                </div>
+            `).join('');
+
+            $('alert-list').innerHTML = state.alerts.length
+                ? state.alerts.map((alert) => {
+                    const meta = getRiskMeta(alert.score);
+                    return `
+                        <div class="alert-item ${meta.tone}">
+                            <span class="material-icons-round">notification_important</span>
+                            <div class="alert-copy">
+                                <strong>${escapeHtml(alert.user_id)}</strong>
+                                <p>${escapeHtml(alert.message)} • ${escapeHtml(alert.channel || 'dashboard')} • ${escapeHtml(formatDateTime(alert.time))}</p>
+                            </div>
+                            <div class="score-chip ${meta.tone}">${formatNumber(alert.score, 1)}</div>
+                        </div>
+                    `;
+                }).join('')
+                : '<div class="empty-state"><span class="material-icons-round">notifications_active</span><h4>No alert history yet</h4><p>Create a rule or trigger a low-score event to populate this timeline.</p></div>';
+        }
+
+        function renderRules() {
+            $('rule-list').innerHTML = state.rules.length
+                ? state.rules.map((rule) => `
+                    <div class="rule-tile">
+                        <div class="rule-main">
+                            <strong>${escapeHtml(rule.name)}</strong>
+                            <p>${escapeHtml(rule.condition)} ${formatNumber(rule.threshold, 1)} • created ${escapeHtml(formatDateTime(rule.created_at))}</p>
+                            <div class="channel-row">
+                                ${(rule.channels || ['dashboard']).map((channel) => `<span class="channel-pill">${escapeHtml(channel)}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div style="display:grid; gap:10px; justify-items:end;">
+                            <button class="switch ${rule.enabled ? 'active' : ''}" type="button" data-action="toggle-rule" data-rule="${rule.id}" aria-label="Toggle rule"></button>
+                            <button class="mini-btn danger" type="button" data-action="delete-rule" data-rule="${rule.id}">Delete</button>
+                        </div>
+                    </div>
+                `).join('')
+                : '<div class="empty-state"><span class="material-icons-round">tune</span><h4>No rules found</h4><p>Create one from the Alerts page or use a quick template here.</p></div>';
+        }
+
+        function renderSecurity() {
+            $('blocked').textContent = String(state.blockedIps.length);
+            $('rate-limited').textContent = String((state.rateLimit.blocked_ips || []).length);
+            $('bots').textContent = String(state.stats.anomalies);
+            $('attacks').textContent = String(state.blockedIps.length + state.alerts.filter((alert) => Number(alert.score || 0) < 40).length);
+            $('defense-state').textContent = state.rules.filter((rule) => rule.enabled).length ? 'Armed' : 'Standby';
+            $('security-rate-note').textContent = `${state.rateLimit.active_limited || 0} active tracked clients`;
+            $('security-rule-note').textContent = `${state.rules.filter((rule) => rule.enabled).length} active rules protecting the system`;
+
+            $('blocked-ips-body').innerHTML = state.blockedIps.length
+                ? state.blockedIps.map((item) => `
+                    <tr>
+                        <td>${escapeHtml(item.ip)}</td>
+                        <td>${escapeHtml(item.reason || 'Manual block')}</td>
+                        <td>${escapeHtml(item.expires_at || 'Manual')}</td>
+                        <td>${escapeHtml(formatDateTime(item.created_at))}</td>
+                        <td>
+                            <button class="mini-btn danger" type="button" data-action="remove-ip" data-ip="${escapeHtml(item.ip)}">Unblock</button>
+                        </td>
+                    </tr>
+                `).join('')
+                : `<tr><td colspan="5"><div class="empty-state"><span class="material-icons-round">verified</span><h4>No blocked IPs</h4><p>The system is clean right now. Use the form above to demonstrate manual blocking.</p></div></td></tr>`;
+        }
+
+        function renderAll() {
+            refreshUserMap();
+            renderDashboard();
+            renderUsers();
+            renderAnalytics();
+            renderEvents();
+            renderAlerts();
+            renderRules();
+            renderSecurity();
+        }
+
+        async function loadAllData({ notify = false } = {}) {
+            const entries = [
+                ['stats', fetchJson('/api/stats')],
+                ['users', fetchJson('/api/users')],
+                ['logs', fetchJson('/api/logs')],
+                ['anomalies', fetchJson('/api/anomalies')],
+                ['alerts', fetchJson('/api/alerts/history')],
+                ['rules', fetchJson('/api/alerts/rules')],
+                ['blockedIps', fetchJson('/api/blocked-ips')],
+                ['rateLimit', fetchJson('/api/rate-limit/status')],
+                ['settings', fetchJson('/api/settings')]
+            ];
+
+            const results = await Promise.allSettled(entries.map((entry) => entry[1]));
+            const failures = [];
+
+            results.forEach((result, index) => {
+                const key = entries[index][0];
+                if (result.status === 'fulfilled') {
+                    state[key] = result.value;
+                } else {
+                    failures.push(key);
+                    console.error(result.reason);
+                }
+            });
+
+            state.lastRefreshLabel = `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            if (!state.liveFeed.length) {
+                state.liveFeed = state.logs.slice(0, 4).map(buildSignalFromLog);
+            }
+
+            renderAll();
+            if (notify) {
+                showToast(
+                    failures.length
+                        ? `Refreshed with ${failures.length} issue${failures.length > 1 ? 's' : ''}.`
+                        : 'Dashboard refreshed successfully.',
+                    failures.length ? 'warning' : 'success'
+                );
+            }
+        }
+
+        function syncEventFilterButtons() {
+            document.querySelectorAll('[data-event-filter]').forEach((button) => {
+                button.classList.toggle('active', button.dataset.eventFilter === state.filters.events);
+            });
+        }
+
+        async function openProfile(userId) {
+            try {
+                $('profile-modal').classList.add('open');
+                $('profile-content').innerHTML = '<div class="empty-state"><span class="material-icons-round">hourglass_top</span><h4>Loading profile</h4><p>Fetching behavioral history and trust fingerprint.</p></div>';
+                const profile = state.profileCache.get(userId) || await fetchJson(`/api/profile/${encodeURIComponent(userId)}`);
+                state.profileCache.set(userId, profile);
+
+                if (profile.error) {
+                    $('profile-content').innerHTML = `<div class="empty-state"><span class="material-icons-round">error</span><h4>${escapeHtml(profile.error)}</h4><p>This user does not have a profile history yet.</p></div>`;
+                    return;
+                }
+
+                const meta = getRiskMeta(profile.score);
+                $('profile-content').innerHTML = `
+                    <div class="focus-card">
+                        <div class="toolbar">
+                            <div>
+                                <strong>${escapeHtml(profile.userId)}</strong>
+                                <p>Detailed behavior history with analyst response actions.</p>
+                            </div>
+                            <span class="score-chip ${meta.tone}">${formatNumber(profile.score, 1)} • ${meta.label}</span>
+                        </div>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <p>Avg interval</p>
+                                <strong>${formatNumber(profile.fingerprint.interval)}ms</strong>
+                            </div>
+                            <div class="detail-item">
+                                <p>Click variance</p>
+                                <strong>${formatNumber(profile.fingerprint.variance, 2)}</strong>
+                            </div>
+                            <div class="detail-item">
+                                <p>Scroll speed</p>
+                                <strong>${formatNumber(profile.fingerprint.scroll)} px</strong>
+                            </div>
+                            <div class="detail-item">
+                                <p>Tab switches</p>
+                                <strong>${formatNumber(profile.fingerprint.tabs, 1)}</strong>
+                            </div>
+                        </div>
+                        <div class="action-row" style="margin-top: 16px;">
+                            <button class="primary-btn" type="button" data-action="safe" data-user="${escapeHtml(profile.userId)}">
+                                <span class="material-icons-round">verified</span>
+                                Mark Safe
+                            </button>
+                            <button class="secondary-btn" type="button" id="close-profile-inline">
+                                <span class="material-icons-round">close</span>
+                                Close
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="height: 18px;"></div>
+
+                    <div class="panel" style="padding:0; box-shadow:none; border:none; background:transparent;">
+                        <div class="section-heading">
+                            <div>
+                                <span class="eyebrow">Recent History</span>
+                                <h3>Behavior trail</h3>
+                                <p>Recent signals driving the current trust score.</p>
+                            </div>
+                        </div>
+                        <div class="timeline">
+                            ${profile.history.map((item) => {
+                                const itemMeta = getRiskMeta(deriveLogScore({ ...item, userId: profile.userId }));
+                                return `
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker" style="background: var(--${itemMeta.tone});"></div>
+                                        <div>
+                                            <strong>${escapeHtml(formatDateTime(item.time))}</strong>
+                                            <p>${formatNumber(item.interval)}ms interval • ${formatNumber(item.scroll)} px scroll • ${formatNumber(item.tabSwitches)} tab switches</p>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+
+                const inlineClose = $('close-profile-inline');
+                if (inlineClose) inlineClose.addEventListener('click', closeProfile);
+            } catch (error) {
+                console.error(error);
+                $('profile-content').innerHTML = '<div class="empty-state"><span class="material-icons-round">error</span><h4>Unable to load profile</h4><p>Check that the backend is running and try again.</p></div>';
+            }
+        }
+
+        function closeProfile() {
+            $('profile-modal').classList.remove('open');
+        }
+
+        async function markUserSafe(userId) {
+            try {
+                await requestJson('/api/feedback', 'POST', { userId, label: 'Safe' });
+                showToast(`Marked ${userId} as safe.`);
+                await loadAllData();
+                if ($('profile-modal').classList.contains('open')) {
+                    state.profileCache.delete(userId);
+                    openProfile(userId);
+                }
+            } catch (error) {
+                console.error(error);
+                showToast('Unable to submit analyst feedback.', 'danger');
+            }
+        }
+
+        async function toggleRule(ruleId) {
+            const rule = state.rules.find((entry) => String(entry.id) === String(ruleId));
+            if (!rule) return;
+            try {
+                await requestJson(`/api/alerts/rules/${rule.id}`, 'PUT', {
+                    name: rule.name,
+                    condition: rule.condition,
+                    threshold: rule.threshold,
+                    enabled: !rule.enabled,
+                    channels: rule.channels || ['dashboard']
+                });
+                showToast(`Rule ${rule.enabled ? 'disabled' : 'enabled'} successfully.`);
+                await loadAllData();
+            } catch (error) {
+                console.error(error);
+                showToast('Unable to update the rule.', 'danger');
+            }
+        }
+
+        async function deleteRule(ruleId) {
+            if (!window.confirm('Delete this rule?')) return;
+            try {
+                await fetch(`${API}/api/alerts/rules/${ruleId}`, { method: 'DELETE' });
+                showToast('Rule removed.');
+                await loadAllData();
+            } catch (error) {
+                console.error(error);
+                showToast('Unable to delete the rule.', 'danger');
+            }
+        }
+
+        async function createTemplateRule(template) {
+            const templates = {
+                critical: { name: 'Critical Breach Alarm', condition: 'below', threshold: 25, channels: ['dashboard'] },
+                watchlist: { name: 'Watchlist Monitor', condition: 'below', threshold: 45, channels: ['dashboard', 'slack'] },
+                vip: { name: 'VIP Verification', condition: 'above', threshold: 95, channels: ['dashboard'] }
+            };
+            const payload = templates[template];
+            if (!payload) return;
+            try {
+                await requestJson('/api/alerts/rules', 'POST', { ...payload, enabled: true });
+                showToast('Preset rule created.');
+                await loadAllData();
+            } catch (error) {
+                console.error(error);
+                showToast('Unable to create preset rule.', 'danger');
+            }
+        }
+
+        async function blockIp(ip, reason) {
+            try {
+                await requestJson('/api/blocked-ips', 'POST', { ip, reason });
+                showToast(`Blocked ${ip}.`);
+                $('block-ip-form').reset();
+                await loadAllData();
+            } catch (error) {
+                console.error(error);
+                showToast('Unable to block the IP.', 'danger');
+            }
+        }
+
+        async function removeBlockedIp(ip) {
+            try {
+                await fetch(`${API}/api/blocked-ips/${encodeURIComponent(ip)}`, { method: 'DELETE' });
+                showToast(`Unblocked ${ip}.`);
+                await loadAllData();
+            } catch (error) {
+                console.error(error);
+                showToast('Unable to unblock the IP.', 'danger');
+            }
+        }
+
+        async function unblockAll() {
+            if (!window.confirm('Unblock all IPs and clear rate limiting?')) return;
+            try {
+                await requestJson('/api/rate-limit/unblock-all', 'POST', {});
+                showToast('All IPs unblocked.');
+                await loadAllData();
+            } catch (error) {
+                console.error(error);
+                showToast('Unable to unblock all IPs.', 'danger');
+            }
+        }
+
+        function handleSocketMessage(message) {
+            if (!message || !message.type) return;
+
+            if (message.type === 'METRIC_UPDATE' && message.data) {
+                const user = state.usersById.get(message.data.userId);
+                const enrichedLog = {
+                    userId: message.data.userId,
+                    browser: user?.browser || 'Live session',
+                    interval: Number(message.data.interval || 0),
+                    variance: Number(message.data.variance || 0),
+                    scroll: user?.scroll || 0,
+                    duration: user?.duration || 0,
+                    tabSwitches: user?.tabSwitches || 0,
+                    time: message.data.time,
+                    liveScore: Number(message.data.score || 0)
+                };
+
+                enrichedLog.browser = message.data.browser || enrichedLog.browser;
+                enrichedLog.scroll = Number(message.data.scroll ?? enrichedLog.scroll ?? 0);
+                enrichedLog.duration = Number(message.data.duration ?? enrichedLog.duration ?? 0);
+                enrichedLog.tabSwitches = Number(message.data.tabSwitches ?? enrichedLog.tabSwitches ?? 0);
+                enrichedLog.sessionId = message.data.sessionId || user?.sessionId || 'Live';
+
+                state.logs.unshift(enrichedLog);
+                state.logs = state.logs.slice(0, 100);
+                state.liveFeed.unshift(buildSignalFromLog(enrichedLog));
+                state.liveFeed = state.liveFeed.slice(0, 6);
+                if (message.data.stats) state.stats = message.data.stats;
+                state.lastRefreshLabel = `Live update ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                upsertLiveUser(message.data);
+                state.profileCache.delete(message.data.userId);
+
+                renderAll();
+            }
+
+            if (message.type === 'STATS_UPDATE' && message.data) {
+                state.stats = message.data;
+                renderAll();
+            }
+
+            if (message.type === 'SETTINGS_UPDATE' && message.data) {
+                state.settings = message.data;
+                renderAnalytics();
+                renderDashboard();
+            }
+        }
+
+        function connectSocket() {
+            try {
+                setLiveState('warning', 'Connecting to live telemetry');
+                const socket = new WebSocket(WS_URL);
+                state.socket = socket;
+
+                socket.addEventListener('open', () => {
+                    setLiveState('success', 'Live telemetry connected');
+                    if (state.heartbeat) clearInterval(state.heartbeat);
+                    state.heartbeat = setInterval(() => {
+                        if (socket.readyState === WebSocket.OPEN) socket.send('ping');
+                    }, 18000);
+                });
+
+                socket.addEventListener('message', (event) => {
+                    try {
+                        handleSocketMessage(JSON.parse(event.data));
+                    } catch (error) {
+                        console.error(error);
+                    }
+                });
+
+                socket.addEventListener('close', () => {
+                    setLiveState('warning', 'Reconnecting live telemetry');
+                    if (state.heartbeat) clearInterval(state.heartbeat);
+                    setTimeout(connectSocket, 4000);
+                });
+
+                socket.addEventListener('error', () => {
+                    setLiveState('danger', 'Live stream unavailable');
+                });
+            } catch (error) {
+                console.error(error);
+                setLiveState('danger', 'Live stream unavailable');
+            }
+        }
+
+        function registerEvents() {
+            document.querySelectorAll('.nav-item').forEach((item) => {
+                item.addEventListener('click', () => setPage(item.dataset.page));
+            });
+
+            document.querySelectorAll('[data-nav]').forEach((button) => {
+                button.addEventListener('click', () => setPage(button.dataset.nav));
+            });
+
+            $('menu-toggle').addEventListener('click', () => document.body.classList.toggle('sidebar-open'));
+            $('sidebar-overlay').addEventListener('click', () => document.body.classList.remove('sidebar-open'));
+
+            $('refresh-btn').addEventListener('click', () => loadAllData({ notify: true }));
+            $('export-btn').addEventListener('click', () => window.open(`${API}/api/export`, '_blank'));
+            $('pdf-btn').addEventListener('click', () => window.open(`${API}/api/report/pdf`, '_blank'));
+
+            $('users-search').addEventListener('input', (event) => {
+                state.filters.userSearch = event.target.value;
+                renderUsers();
+            });
+
+            $('users-filter').addEventListener('change', (event) => {
+                state.filters.users = event.target.value;
+                renderUsers();
+            });
+
+            $('events-search').addEventListener('input', (event) => {
+                state.filters.eventSearch = event.target.value;
+                renderEvents();
+            });
+
+            document.querySelectorAll('[data-event-filter]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    state.filters.events = button.dataset.eventFilter;
+                    syncEventFilterButtons();
+                    renderEvents();
+                });
+            });
+
+            $('settings-form').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                try {
+                    const sensitivity = Number($('sensitivity-slider').value);
+                    await requestJson('/api/settings', 'POST', { sensitivity });
+                    showToast('Sensitivity updated.');
+                    await loadAllData();
+                } catch (error) {
+                    console.error(error);
+                    showToast('Unable to update sensitivity.', 'danger');
+                }
+            });
+
+            $('sensitivity-slider').addEventListener('input', (event) => {
+                $('sensitivity-display').textContent = `${Number(event.target.value).toFixed(2)}x`;
+            });
+
+            $('rule-form').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const channels = [...document.querySelectorAll('input[name="rule-channel"]:checked')].map((input) => input.value);
+                try {
+                    await requestJson('/api/alerts/rules', 'POST', {
+                        name: $('rule-name').value.trim(),
+                        condition: $('rule-condition').value,
+                        threshold: Number($('rule-threshold').value),
+                        channels: channels.length ? channels : ['dashboard'],
+                        enabled: true
+                    });
+                    showToast('Alert rule created.');
+                    $('rule-form').reset();
+                    document.querySelector('input[name="rule-channel"][value="dashboard"]').checked = true;
+                    await loadAllData();
+                } catch (error) {
+                    console.error(error);
+                    showToast('Unable to create the rule.', 'danger');
+                }
+            });
+
+            $('block-ip-form').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                await blockIp($('block-ip').value.trim(), $('block-reason').value.trim());
+            });
+
+            $('unblock-all-btn').addEventListener('click', unblockAll);
+            $('close-modal-btn').addEventListener('click', closeProfile);
+            $('profile-modal').addEventListener('click', (event) => {
+                if (event.target === $('profile-modal')) closeProfile();
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') closeProfile();
+            });
+
+            document.addEventListener('click', (event) => {
+                const trigger = event.target.closest('[data-action], [data-template]');
+                if (!trigger) return;
+
+                if (trigger.dataset.template) {
+                    createTemplateRule(trigger.dataset.template);
+                    return;
+                }
+
+                const action = trigger.dataset.action;
+                if (action === 'profile') openProfile(trigger.dataset.user);
+                if (action === 'safe') markUserSafe(trigger.dataset.user);
+                if (action === 'toggle-rule') toggleRule(trigger.dataset.rule);
+                if (action === 'delete-rule') deleteRule(trigger.dataset.rule);
+                if (action === 'remove-ip') removeBlockedIp(trigger.dataset.ip);
+            });
+
+            window.addEventListener('resize', resizeCharts);
+        }
+
+        async function init() {
+            ensureDashboardCharts();
+            registerEvents();
+            syncEventFilterButtons();
+            updateHeaderForPage(state.currentPage);
+            await loadAllData();
+            connectSocket();
+            setInterval(() => loadAllData(), 20000);
+        }
+
+        init().catch((error) => {
+            console.error(error);
+            showToast('Unable to initialize the dashboard.', 'danger');
+        });
+    </script>
+</body>
+</html>

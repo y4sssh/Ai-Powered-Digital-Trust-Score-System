@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "AI Digital Trust Scorer",
+  "version": "1.0",
+  "description": "Real-time AI-powered trust evaluation.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "notifications"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ]
+    }
+  ],
+  "host_permissions": [
+    "*://localhost/*"
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "trustscorer@ai.demo",
+      "strict_min_version": "109.0"
+    }
+  }
+}

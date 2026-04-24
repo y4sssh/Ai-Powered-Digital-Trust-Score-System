@@ -1,0 +1,11 @@
+.codex/
+venv/
+__pycache__/
+*.pyc
+*.log
+server.log
+log.txt
+trust_system.db
+AI_Trust_Scorer_Report.pdf
+implementation_plan.md
+
