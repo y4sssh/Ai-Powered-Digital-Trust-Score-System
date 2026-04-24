@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: trustcore-ai
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    autoDeployTrigger: commit
+    envVars:
+      - key: TRUSTCORE_DEMO_SEED
+        value: "true"
+      - key: DB_PATH
+        value: /app/data/trust_system.db

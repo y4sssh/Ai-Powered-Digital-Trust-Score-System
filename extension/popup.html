@@ -59,6 +59,55 @@
             font-size: 0.7rem;
             color: #64748b;
         }
+
+        .config {
+            margin-top: 18px;
+            text-align: left;
+        }
+
+        .config label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+        }
+
+        .config input {
+            width: 100%;
+            border: 1px solid #334155;
+            background: #020617;
+            color: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 0.85rem;
+        }
+
+        .config button {
+            width: 100%;
+            margin-top: 10px;
+            border: 0;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #0ea5e9, #2563eb);
+            color: #fff;
+        }
+
+        .config small {
+            display: block;
+            margin-top: 8px;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+
+        .config-status {
+            min-height: 18px;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: #38bdf8;
+        }
     </style>
 </head>
 
@@ -68,6 +117,13 @@
         <div id="score" class="score-circle">--</div>
         <div id="status" class="status">Initializing...</div>
         <div class="footer">AI-Powered Anomaly Detection active</div>
+        <div class="config">
+            <label for="backend-url">Backend URL</label>
+            <input id="backend-url" type="url" placeholder="https://your-app.onrender.com">
+            <button id="save-backend-url" type="button">Save Backend URL</button>
+            <div id="config-status" class="config-status"></div>
+            <small>Use your live hosted app URL here. Local default is `http://localhost:8000`.</small>
+        </div>
     </div>
     <script src="popup.js"></script>
 </body>

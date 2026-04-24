@@ -1,4 +1,9 @@
 const api = typeof browser !== "undefined" ? browser : chrome;
+const DEFAULT_BACKEND_BASE_URL = "http://localhost:8000";
+
+function normalizeBackendBaseUrl(url) {
+    return (url || DEFAULT_BACKEND_BASE_URL).trim().replace(/\/+$/, "");
+}
 
 function updateUI() {
     api.storage.local.get(['currentScore'], (result) => {
@@ -29,5 +34,23 @@ function updateUI() {
     });
 }
 
+function loadBackendUrl() {
+    api.storage.local.get({ backendBaseUrl: DEFAULT_BACKEND_BASE_URL }, (result) => {
+        document.getElementById('backend-url').value = normalizeBackendBaseUrl(result.backendBaseUrl);
+    });
+}
+
+function showStatus(message) {
+    document.getElementById('config-status').textContent = message;
+}
+
+document.getElementById('save-backend-url').addEventListener('click', () => {
+    const backendUrl = normalizeBackendBaseUrl(document.getElementById('backend-url').value);
+    api.storage.local.set({ backendBaseUrl: backendUrl }, () => {
+        showStatus(`Saved: ${backendUrl}`);
+    });
+});
+
 setInterval(updateUI, 1000);
 updateUI();
+loadBackendUrl();

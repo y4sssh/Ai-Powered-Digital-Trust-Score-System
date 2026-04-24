@@ -16,6 +16,11 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from ai_logic import ai_engine
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEFAULT_DB_PATH = os.path.join(PROJECT_ROOT, "trust_system.db")
+DB_PATH = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+DEMO_SEED_ENABLED = os.getenv("TRUSTCORE_DEMO_SEED", "false").lower() in {"1", "true", "yes", "on"}
+
 app = FastAPI(title="Digital Trust Score API")
 
 app.add_middleware(
@@ -27,7 +32,7 @@ app.add_middleware(
 
 # Serve static frontend files
 backend_dir = os.path.dirname(os.path.abspath(__file__))
-frontend_path = os.path.join(os.path.dirname(backend_dir), "frontend")
+frontend_path = os.path.join(PROJECT_ROOT, "frontend")
 if os.path.exists(frontend_path):
     app.mount("/static", StaticFiles(directory=frontend_path), name="frontend")
 
@@ -59,6 +64,13 @@ class RateLimiter:
 
 rate_limiter = RateLimiter()
 
+
+def get_db_connection():
+    db_dir = os.path.dirname(DB_PATH)
+    if db_dir:
+        os.makedirs(db_dir, exist_ok=True)
+    return sqlite3.connect(DB_PATH)
+
 # WebSocket Manager
 class ConnectionManager:
     def __init__(self):
@@ -82,7 +94,7 @@ manager = ConnectionManager()
 
 # Database Setup
 def init_db():
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS user_scores 
                  (user_id TEXT PRIMARY KEY, score REAL, last_updated TEXT)''')
@@ -121,6 +133,107 @@ def init_db():
     conn.close()
 
 init_db()
+
+
+def seed_demo_data():
+    if not DEMO_SEED_ENABLED:
+        return
+
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*) FROM user_scores")
+    if c.fetchone()[0] > 0:
+        conn.close()
+        return
+
+    demo_sessions = [
+        {
+            "user_id": "demo_analyst_01",
+            "browser": "Chrome",
+            "avg_interval": 812.0,
+            "variance": 48.0,
+            "scroll": 132.0,
+            "duration": 684.0,
+            "tab_switches": 1.0,
+            "session_id": "demo-session-001"
+        },
+        {
+            "user_id": "demo_customer_02",
+            "browser": "Firefox",
+            "avg_interval": 965.0,
+            "variance": 58.0,
+            "scroll": 104.0,
+            "duration": 942.0,
+            "tab_switches": 2.0,
+            "session_id": "demo-session-002"
+        },
+        {
+            "user_id": "demo_bot_03",
+            "browser": "Bot-v1",
+            "avg_interval": 43.0,
+            "variance": 4.0,
+            "scroll": 2140.0,
+            "duration": 28.0,
+            "tab_switches": 15.0,
+            "session_id": "demo-session-003"
+        },
+        {
+            "user_id": "demo_risk_04",
+            "browser": "Safari",
+            "avg_interval": 180.0,
+            "variance": 10.0,
+            "scroll": 1180.0,
+            "duration": 73.0,
+            "tab_switches": 8.0,
+            "session_id": "demo-session-004"
+        },
+        {
+            "user_id": "demo_member_05",
+            "browser": "Edge",
+            "avg_interval": 704.0,
+            "variance": 36.0,
+            "scroll": 188.0,
+            "duration": 521.0,
+            "tab_switches": 0.0,
+            "session_id": "demo-session-005"
+        }
+    ]
+
+    for session in demo_sessions:
+        event_time = time.ctime()
+        features = [
+            session["avg_interval"],
+            session["variance"],
+            session["scroll"],
+            session["tab_switches"]
+        ]
+        result = ai_engine.calculate_trust_score(features)
+        final_score = result.get("final_score", result.get("base_score", 50))
+
+        c.execute(
+            "INSERT INTO behavioral_logs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                session["user_id"],
+                session["browser"],
+                session["avg_interval"],
+                session["variance"],
+                session["scroll"],
+                session["duration"],
+                session["tab_switches"],
+                event_time,
+                session["session_id"]
+            )
+        )
+        c.execute(
+            "INSERT OR REPLACE INTO user_scores VALUES (?, ?, ?)",
+            (session["user_id"], final_score, event_time)
+        )
+
+    conn.commit()
+    conn.close()
+
+
+seed_demo_data()
 
 # Alert Notification System
 class AlertSystem:
@@ -195,7 +308,7 @@ class AlertSystem:
             print(f"Email alert failed: {e}")
     
     async def check_and_notify(self, user_id: str, score: float, data: dict):
-        conn = sqlite3.connect('trust_system.db')
+        conn = get_db_connection()
         c = conn.cursor()
         c.execute("SELECT * FROM alert_rules WHERE enabled = 1")
         rules = c.fetchall()
@@ -217,7 +330,7 @@ class AlertSystem:
                 for channel in channel_list:
                     await self.send_alert(message, channel, {"userId": user_id, "score": score})
                     
-                    conn = sqlite3.connect('trust_system.db')
+                    conn = get_db_connection()
                     c = conn.cursor()
                     c.execute("INSERT INTO alerts VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                               (None, rule_id, user_id, score, message, channel, 0, time.ctime()))
@@ -250,7 +363,7 @@ class ScoreResponse(BaseModel):
     breakdown: Optional[Dict] = None
 
 async def get_current_stats():
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("SELECT COUNT(*) FROM user_scores")
     total_users = c.fetchone()[0]
@@ -264,6 +377,13 @@ async def get_current_stats():
         "avgScore": round(avg_score, 1),
         "anomalies": anomalies
     }
+
+
+@app.get("/healthz")
+async def health_check():
+    conn = get_db_connection()
+    conn.close()
+    return {"status": "ok"}
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -283,7 +403,7 @@ async def collect_data(data: BehavioralData, request: Request):
         raise HTTPException(status_code=429, detail="Rate limit exceeded. Too many requests.")
     
     event_time = time.ctime()
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     
     # Check blocked IPs
@@ -368,7 +488,7 @@ async def get_stats():
 
 @app.get("/api/users")
 async def get_users(limit: int = 100):
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("""
         SELECT us.user_id, us.score, us.last_updated,
@@ -408,7 +528,7 @@ async def get_users(limit: int = 100):
 
 @app.get("/api/logs")
 async def get_logs():
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("SELECT * FROM behavioral_logs ORDER BY timestamp DESC LIMIT 100")
     logs = c.fetchall()
@@ -417,7 +537,7 @@ async def get_logs():
 
 @app.get("/api/anomalies")
 async def get_anomalies():
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("SELECT user_id, score, last_updated FROM user_scores WHERE score < 50 ORDER BY last_updated DESC")
     anoms = c.fetchall()
@@ -426,7 +546,7 @@ async def get_anomalies():
 
 @app.get("/api/profile/{user_id}")
 async def get_profile(user_id: str):
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("SELECT * FROM behavioral_logs WHERE user_id = ? ORDER BY timestamp DESC LIMIT 20", (user_id,))
     logs = c.fetchall()
@@ -470,7 +590,7 @@ async def update_settings(settings: dict = Body(...)):
         level = float(settings["sensitivity"])
         ai_engine.set_sensitivity(level)
         
-        conn = sqlite3.connect('trust_system.db')
+        conn = get_db_connection()
         c = conn.cursor()
         c.execute("INSERT OR REPLACE INTO settings VALUES (?, ?)", ('sensitivity', str(level)))
         conn.commit()
@@ -487,7 +607,7 @@ async def submit_feedback(feedback: dict = Body(...)):
     user_id = feedback.get("userId")
     label = feedback.get("label")
     
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("INSERT INTO feedback VALUES (?, ?, ?, ?)", ("manual", user_id, label, time.ctime()))
     
@@ -505,7 +625,7 @@ async def submit_feedback(feedback: dict = Body(...)):
 
 @app.get("/api/export")
 async def export_data():
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("SELECT * FROM user_scores")
     scores = c.fetchall()
@@ -522,7 +642,7 @@ async def generate_pdf_report():
     from weasyprint import HTML
     import io
     
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("SELECT COUNT(*) FROM user_scores")
     total_users = c.fetchone()[0]
@@ -643,7 +763,7 @@ async def generate_pdf_report():
 
 @app.get("/api/alerts/rules")
 async def get_alert_rules():
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("SELECT * FROM alert_rules ORDER BY id DESC")
     rules = c.fetchall()
@@ -653,7 +773,7 @@ async def get_alert_rules():
 
 @app.post("/api/alerts/rules")
 async def create_alert_rule(rule: dict = Body(...)):
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("INSERT INTO alert_rules VALUES (?, ?, ?, ?, ?, ?, ?)",
               (None, rule.get("name"), rule.get("condition"), rule.get("threshold"),
@@ -665,7 +785,7 @@ async def create_alert_rule(rule: dict = Body(...)):
 
 @app.put("/api/alerts/rules/{rule_id}")
 async def update_alert_rule(rule_id: int, rule: dict = Body(...)):
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("UPDATE alert_rules SET name=?, condition=?, threshold=?, enabled=?, channels=? WHERE id=?",
               (rule.get("name"), rule.get("condition"), rule.get("threshold"),
@@ -676,7 +796,7 @@ async def update_alert_rule(rule_id: int, rule: dict = Body(...)):
 
 @app.delete("/api/alerts/rules/{rule_id}")
 async def delete_alert_rule(rule_id: int):
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("DELETE FROM alert_rules WHERE id=?", (rule_id,))
     conn.commit()
@@ -685,7 +805,7 @@ async def delete_alert_rule(rule_id: int):
 
 @app.get("/api/alerts/history")
 async def get_alert_history(limit: int = 50):
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("SELECT * FROM alerts ORDER BY id DESC LIMIT ?", (limit,))
     alerts = c.fetchall()
@@ -719,7 +839,7 @@ async def configure_email(config: dict = Body(...)):
 # IP Blocking
 @app.get("/api/blocked-ips")
 async def get_blocked_ips():
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("SELECT * FROM blocked_ips")
     ips = c.fetchall()
@@ -732,7 +852,7 @@ async def block_ip(data: dict = Body(...)):
     reason = data.get("reason", "Manual block")
     expires = data.get("expires_at", None)
     
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("INSERT OR REPLACE INTO blocked_ips VALUES (?, ?, ?, ?)",
               (ip, reason, expires, time.ctime()))
@@ -744,7 +864,7 @@ async def block_ip(data: dict = Body(...)):
 
 @app.delete("/api/blocked-ips/{ip}")
 async def unblock_ip(ip: str):
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("DELETE FROM blocked_ips WHERE ip=?", (ip,))
     conn.commit()
@@ -764,7 +884,7 @@ async def get_rate_limit_status():
 async def unblock_all_ips():
     rate_limiter.blocked_ips.clear()
     rate_limiter.requests.clear()
-    conn = sqlite3.connect('trust_system.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("DELETE FROM blocked_ips")
     conn.commit()
@@ -773,4 +893,4 @@ async def unblock_all_ips():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")))

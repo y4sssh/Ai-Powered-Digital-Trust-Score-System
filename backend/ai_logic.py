@@ -7,7 +7,8 @@ import hashlib
 import json
 from typing import Dict, List, Any
 
-MODEL_PATH = "trust_model.joblib"
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_PATH = os.getenv("MODEL_PATH", os.path.join(PROJECT_ROOT, "trust_model.joblib"))
 
 class DetectionEngine:
     def __init__(self):
@@ -174,6 +175,9 @@ class TrustAI:
         X = np.vstack([normal_data, bot_data])
         self.model.fit(X)
         self.is_trained = True
+        model_dir = os.path.dirname(MODEL_PATH)
+        if model_dir:
+            os.makedirs(model_dir, exist_ok=True)
         joblib.dump(self.model, MODEL_PATH)
 
     def set_sensitivity(self, level):

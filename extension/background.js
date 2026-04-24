@@ -1,8 +1,18 @@
 const api = typeof browser !== "undefined" ? browser : chrome;
-const BACKEND_URL = "http://localhost:8000/api/collect";
+const DEFAULT_BACKEND_BASE_URL = "http://localhost:8000";
 const BROWSER_NAME = typeof browser !== "undefined" ? "Firefox" : /Edg/.test(navigator.userAgent) ? "Edge" : "Chrome";
 const ALERT_COOLDOWN_MS = 30000;
 const recentAlerts = new Map();
+
+function normalizeBackendBaseUrl(url) {
+    return (url || DEFAULT_BACKEND_BASE_URL).replace(/\/+$/, "");
+}
+
+function getBackendCollectUrl(callback) {
+    api.storage.local.get({ backendBaseUrl: DEFAULT_BACKEND_BASE_URL }, ({ backendBaseUrl }) => {
+        callback(`${normalizeBackendBaseUrl(backendBaseUrl)}/api/collect`);
+    });
+}
 
 function buildAlertPayload(result) {
     if (!result || result.status === "Normal" || result.score > 70) {
@@ -52,31 +62,33 @@ api.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'SENSE_METRICS') {
         sendResponse({ queued: true });
         const payload = { ...message.data, browser: BROWSER_NAME };
-        fetch(BACKEND_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-            .then(response => response.json())
-            .then(data => {
-                api.storage.local.set({ currentScore: data });
-
-                const alertPayload = buildAlertPayload(data);
-                if (alertPayload && shouldNotify(data)) {
-                    api.notifications.create(`trust-alert-${Date.now()}`, {
-                        type: 'basic',
-                        iconUrl: api.runtime.getURL('icon.svg'),
-                        title: alertPayload.title,
-                        message: `${alertPayload.message} Status: ${data.status}`,
-                        priority: 2
-                    });
-                    sendPageAlert(sender, {
-                        ...alertPayload,
-                        userId: data.userId
-                    });
-                }
-                console.log("Trust Score Updated:", data.score);
+        getBackendCollectUrl((backendUrl) => {
+            fetch(backendUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             })
-            .catch(err => console.error("Error syncing with trust backend:", err));
+                .then(response => response.json())
+                .then(data => {
+                    api.storage.local.set({ currentScore: data });
+
+                    const alertPayload = buildAlertPayload(data);
+                    if (alertPayload && shouldNotify(data)) {
+                        api.notifications.create(`trust-alert-${Date.now()}`, {
+                            type: 'basic',
+                            iconUrl: api.runtime.getURL('icon.svg'),
+                            title: alertPayload.title,
+                            message: `${alertPayload.message} Status: ${data.status}`,
+                            priority: 2
+                        });
+                        sendPageAlert(sender, {
+                            ...alertPayload,
+                            userId: data.userId
+                        });
+                    }
+                    console.log("Trust Score Updated:", data.score);
+                })
+                .catch(err => console.error("Error syncing with trust backend:", err));
+        });
     }
 });

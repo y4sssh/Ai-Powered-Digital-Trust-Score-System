@@ -1,0 +1,11 @@
+.codex
+.git
+.gitignore
+__pycache__/
+*.log
+AI_Trust_Scorer_Report.pdf
+implementation_plan.md
+server.log
+log.txt
+trust_system.db
+venv/
