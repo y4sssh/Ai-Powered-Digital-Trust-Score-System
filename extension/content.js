@@ -1,5 +1,10 @@
 const api = typeof browser !== "undefined" ? browser : chrome;
 const sessionId = Math.random().toString(36).substring(2, 15);
+const normalizedHost = (window.location.hostname || "browser")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "") || "browser";
+const liveUserId = `live_${normalizedHost}`;
 let clickTimes = [];
 let lastScrollPos = window.scrollY;
 let scrollDist = 0;
@@ -110,7 +115,7 @@ setInterval(() => {
     }
 
     const metrics = {
-        userId: "demo_user_alpha", // In a real app, this would be fetched from storage/session
+        userId: liveUserId,
         sessionId: sessionId,
         avgClickInterval: avgInterval,
         clickVariance: variance,
@@ -135,7 +140,7 @@ setInterval(() => {
     clickTimes = [];
     tabSwitches = 0;
     startTime = Date.now();
-}, 8000); // Slightly faster interval for demo responsiveness
+}, 3000); // Send a live update every 3 seconds
 
 api.runtime.onMessage.addListener((message) => {
     if (message.type === 'TRUST_ALERT' && message.data) {

@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Optional, Dict
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import time
 import json
 import sqlite3
@@ -70,6 +70,10 @@ def get_db_connection():
     if db_dir:
         os.makedirs(db_dir, exist_ok=True)
     return sqlite3.connect(DB_PATH)
+
+
+def current_timestamp():
+    return datetime.now(timezone.utc).isoformat()
 
 # WebSocket Manager
 class ConnectionManager:
@@ -200,7 +204,7 @@ def seed_demo_data():
     ]
 
     for session in demo_sessions:
-        event_time = time.ctime()
+        event_time = current_timestamp()
         features = [
             session["avg_interval"],
             session["variance"],
@@ -333,7 +337,7 @@ class AlertSystem:
                     conn = get_db_connection()
                     c = conn.cursor()
                     c.execute("INSERT INTO alerts VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                              (None, rule_id, user_id, score, message, channel, 0, time.ctime()))
+                              (None, rule_id, user_id, score, message, channel, 0, current_timestamp()))
                     conn.commit()
                     conn.close()
 
@@ -402,7 +406,7 @@ async def collect_data(data: BehavioralData, request: Request):
     if rate_limiter.is_rate_limited(client_ip, limit=100, window=60):
         raise HTTPException(status_code=429, detail="Rate limit exceeded. Too many requests.")
     
-    event_time = time.ctime()
+    event_time = current_timestamp()
     conn = get_db_connection()
     c = conn.cursor()
     
@@ -507,7 +511,7 @@ async def get_users(limit: int = 100):
                 GROUP BY user_id
             ) latest ON latest.max_rowid = b1.rowid
         ) bl ON bl.user_id = us.user_id
-        ORDER BY us.score ASC, us.last_updated DESC
+        ORDER BY us.score ASC, us.rowid DESC
         LIMIT ?
     """, (limit,))
     rows = c.fetchall()
@@ -530,7 +534,7 @@ async def get_users(limit: int = 100):
 async def get_logs():
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute("SELECT * FROM behavioral_logs ORDER BY timestamp DESC LIMIT 100")
+    c.execute("SELECT * FROM behavioral_logs ORDER BY rowid DESC LIMIT 100")
     logs = c.fetchall()
     conn.close()
     return [{"userId": l[0], "browser": l[1], "interval": l[2], "variance": l[3], "scroll": l[4], "duration": l[5], "tabSwitches": l[6], "time": l[7], "sessionId": l[8]} for l in logs]
@@ -539,7 +543,7 @@ async def get_logs():
 async def get_anomalies():
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute("SELECT user_id, score, last_updated FROM user_scores WHERE score < 50 ORDER BY last_updated DESC")
+    c.execute("SELECT user_id, score, last_updated FROM user_scores WHERE score < 50 ORDER BY rowid DESC")
     anoms = c.fetchall()
     conn.close()
     return [{"userId": a[0], "score": a[1], "time": a[2]} for a in anoms]
@@ -548,7 +552,7 @@ async def get_anomalies():
 async def get_profile(user_id: str):
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute("SELECT * FROM behavioral_logs WHERE user_id = ? ORDER BY timestamp DESC LIMIT 20", (user_id,))
+    c.execute("SELECT * FROM behavioral_logs WHERE user_id = ? ORDER BY rowid DESC LIMIT 20", (user_id,))
     logs = c.fetchall()
     
     c.execute("SELECT score FROM user_scores WHERE user_id = ?", (user_id,))
@@ -609,7 +613,7 @@ async def submit_feedback(feedback: dict = Body(...)):
     
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute("INSERT INTO feedback VALUES (?, ?, ?, ?)", ("manual", user_id, label, time.ctime()))
+    c.execute("INSERT INTO feedback VALUES (?, ?, ?, ?)", ("manual", user_id, label, current_timestamp()))
     
     if label == "Safe":
         c.execute("UPDATE user_scores SET score = 85.0 WHERE user_id = ?", (user_id,))
@@ -693,7 +697,7 @@ async def generate_pdf_report():
         <div class="container">
             <div class="header">
                 <h1>TrustCore Security Report</h1>
-                <p>Generated: {time.ctime()} | AI-Powered Digital Trust Assessment</p>
+                <p>Generated: {current_timestamp()} | AI-Powered Digital Trust Assessment</p>
             </div>
             
             <div class="stats-grid">
@@ -777,7 +781,7 @@ async def create_alert_rule(rule: dict = Body(...)):
     c = conn.cursor()
     c.execute("INSERT INTO alert_rules VALUES (?, ?, ?, ?, ?, ?, ?)",
               (None, rule.get("name"), rule.get("condition"), rule.get("threshold"),
-               1 if rule.get("enabled", True) else 0, json.dumps(rule.get("channels", [])), time.ctime()))
+               1 if rule.get("enabled", True) else 0, json.dumps(rule.get("channels", [])), current_timestamp()))
     conn.commit()
     rule_id = c.lastrowid
     conn.close()
@@ -855,7 +859,7 @@ async def block_ip(data: dict = Body(...)):
     conn = get_db_connection()
     c = conn.cursor()
     c.execute("INSERT OR REPLACE INTO blocked_ips VALUES (?, ?, ?, ?)",
-              (ip, reason, expires, time.ctime()))
+              (ip, reason, expires, current_timestamp()))
     conn.commit()
     conn.close()
     
