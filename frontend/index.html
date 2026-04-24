@@ -2103,6 +2103,7 @@
         const WS_URL = window.location.origin && window.location.origin !== 'null' && window.location.origin.startsWith('http')
             ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws`
             : 'ws://localhost:8000/ws';
+        const DASHBOARD_REFRESH_MS = 3000;
 
         const pageMeta = {
             dashboard: {
@@ -3489,7 +3490,7 @@
             updateHeaderForPage(state.currentPage);
             await loadAllData();
             connectSocket();
-            setInterval(() => loadAllData(), 20000);
+            setInterval(() => loadAllData(), DASHBOARD_REFRESH_MS);
         }
 
         init().catch((error) => {

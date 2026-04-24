@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Debug Test</h1>
+    <div id="stats">Loading...</div>
+    <div id="logs">Loading...</div>
+    <canvas id="testChart" width="400" height="200"></canvas>
+    
+    <script>
+        const API = 'http://localhost:8000';
+        
+        async function testStats() {
+            try {
+                const res = await fetch(API + '/api/stats');
+                const data = await res.json();
+                document.getElementById('stats').innerHTML = 'Stats: ' + JSON.stringify(data);
+                console.log('Stats:', data);
+            } catch(e) {
+                document.getElementById('stats').innerHTML = 'Error: ' + e.message;
+                console.error('Stats error:', e);
+            }
+        }
+        
+        async function testLogs() {
+            try {
+                const res = await fetch(API + '/api/logs');
+                const data = await res.json();
+                document.getElementById('logs').innerHTML = 'Logs count: ' + data.length;
+                console.log('Logs:', data.length);
+                
+                new Chart(document.getElementById('testChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: data.slice(0,5).map(l => l.userId),
+                        datasets: [{
+                            label: 'Interval',
+                            data: data.slice(0,5).map(l => l.interval),
+                            backgroundColor: 'blue'
+                        }]
+                    }
+                });
+            } catch(e) {
+                document.getElementById('logs').innerHTML = 'Error: ' + e.message;
+                console.error('Logs error:', e);
+            }
+        }
+        
+        testStats();
+        testLogs();
+    </script>
+</body>
+</html>
